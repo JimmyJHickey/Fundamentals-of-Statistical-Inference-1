@@ -70,7 +70,7 @@ choose(n = 8, k = 2)
 
 committees == "P1"
 
-# Each element of the matrix is tets to see if it is equal to "P1"
+# Each element of the matrix is tested to see if it is equal to "P1"
 p1 = committees == "P1"
 p2 = committees == "P2"
 
