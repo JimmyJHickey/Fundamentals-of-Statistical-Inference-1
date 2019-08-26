@@ -6,22 +6,31 @@
 # Launch SAS for Mac.
 ###
 
-SERVER_UP="OK"
+SERVER_UP="200"
+PAGE="http://127.0.0.1:10080/SASStudio/38/"
 
 # check if the server is already up
-check_server=$(curl -Is http://127.0.0.1:10080/SASInformationCenter/index.html | head -1)
+# curl will output just the HTTP code
+# a 200 code means that the server is ready
+function check_server()
+{
+	echo "$(curl -s -o /dev/null -w "%{http_code}" $PAGE)"
+}
+
+# get initial server status
+server_status=$(check_server)
 
 # If the server is down, launch it
-if [[ "$check_server" != *"$SERVER_UP"* ]]; then
-  VBoxManage startvm SAS\ University\ Edition --type headless
+if [[ "$server_status" != *"$SERVER_UP"* ]]; then
+	VBoxManage startvm SAS\ University\ Edition --type headless
 
   # Wait for the web page to actually be up
-  while [[ "$check_server" != *"$SERVER_UP"* ]];
-  do
-    check_server=$(curl -Is http://127.0.0.1:10080/SASInformationCenter/index.html | head -1)
-  done
+	while [[ "$server_status" != *"$SERVER_UP"* ]];
+	do
+		server_status=$(check_server)
+	done
 
 fi
 
 # Open SAS page in a new chrome window
-open -na "Google Chrome" --args --new-window http://127.0.0.1:10080
+open -na "Google Chrome" --args --new-window ${PAGE}
