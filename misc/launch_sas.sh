@@ -8,6 +8,10 @@
 
 SERVER_UP="200"
 PAGE="http://127.0.0.1:10080/SASStudio/38/"
+SAS_FOLDER="/Applications/SASUniversityEdition/myfolders/grad-scripts"
+
+cd ${SAS_FOLDER}
+git pull
 
 # check if the server is already up
 # curl will output just the HTTP code
