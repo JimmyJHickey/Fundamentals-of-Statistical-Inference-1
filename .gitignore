@@ -3,4 +3,5 @@ Icon*
 *.Rproj
 .Rproj.user
 *.Rhistory
+*.RData
 data
