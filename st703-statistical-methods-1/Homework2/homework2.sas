@@ -19,9 +19,6 @@ data hcl;
   ;
 run;
 
-/* proc means data=hcl noprint; */
-/*   output mean(infection_rate) = mean_infection_rate */
-/* run; */
 
 proc ttest data=hcl sides=l h0=2.5 alpha=0.1;
   var infection_rate;
@@ -37,10 +34,9 @@ run;
 * (d) Obtain and plot the power curve for true infection rates ranging from 2 per month to 3 per month. ;
 proc power;
   onesamplemeans test=t dist=normal
-  mean=2 3 stddev=0.3517 ntotal=25 power=.
+  mean=2.4 stddev=0.3517 ntotal=35 power=.
   alpha=0.1 nullmean=2.5 sides=l;
-  plot x=effect min=0 max=4 yopts=(ref=80 crossref=yes)
-    vary(linestyle by mean);
+  plot x=effect min=2 max=3 yopts=(crossref=yes);
 run;
 
 * (e) What sample size would we need to detect that true infection rate for responding treated patients is 2.4 per month with power at least 0.9? ;
@@ -51,7 +47,12 @@ proc power;
 run;
 
 * (f) Overlay the power curve from (d) with the new power curve based on the sample size determined in (e). ;
-
+proc power;
+  onesamplemeans test=t dist=normal
+  mean=2.4 stddev=0.3517 ntotal=35 83 power=.
+  alpha=0.1 nullmean=2.5 sides=l;
+  plot x=effect min=2 max=3 yopts=(crossref=yes);
+run;
 
 /*
  4.11
@@ -87,7 +88,7 @@ run;
 proc power;
   pairedmeans test=diff dist=normal 
   corr=-0.1114011 
-  meandiff=0.05 pairedstddevs=(0.02563445, 0.04091433) npairs=8 power=.
+  meandiff=0.05 pairedstddevs=(0.04091433, 0.02563445) npairs=8 power=.
   alpha=0.05 nulldiff=0 sides=u;
 run;
 
@@ -96,7 +97,7 @@ run;
 proc power;
   pairedmeans test=diff dist=normal
   corr=-0.1114011 
-  meandiff=0.05 pairedstddevs=(0.02563445, 0.04091433) npairs=. power=0.9
+  meandiff=0.05 pairedstddevs=(0.04091433, 0.02563445) npairs=. power=0.9
   alpha=0.05 nulldiff=0 sides=u;
 run;
 
@@ -127,9 +128,14 @@ proc freq data=germination order=data;
   tables germinated / chisq plots=freqplot riskdiff(cl=(wald ac score));
 run;
 
-
 proc power;
-  onesamplefreq test=z method=normal alpha=0.05
+  onesamplefreq CI=WALD test=z method=normal alpha=0.05
     nullp=0.9 sides=u p=0.88 ntotal=50 power=.;
    plot x=effect min=0 max=1;
+run;
+
+proc power;
+  onesamplefreq CI=WALD test=z method=normal alpha=0.05
+    nullp=0.9 sides=u p=0.88 ntotal=50 power=.;
+   plot x=effect min=0.8 max=1;
 run;
