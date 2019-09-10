@@ -15,6 +15,8 @@ COMMIT_MESSAGE="SAS code update "${DATE}
 VBoxManage controlvm SAS\ University\ Edition poweroff
 
 cd ${SAS_FOLDER}
+git pull
+
 git add .
 git commit -m "${COMMIT_MESSAGE}"
 git push
