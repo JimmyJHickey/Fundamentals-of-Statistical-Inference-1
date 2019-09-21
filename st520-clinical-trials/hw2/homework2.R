@@ -24,18 +24,20 @@
 # c(piL, piU)
 
 library(Hmisc)
-binconf(k,n,alpha=.10,method="all")
+n = 20
+k = 5
+binconf(k,n,alpha=.20,method="all")
 # CI: (0.10408084, 0.4555824)
 
 # c.
 
-ci_proportion = function(p)
+ci_proportion= function(p)
 {
   prob = 0
   for(i in 0:20)
   {
-    bounds = binconf(i, 20, alpha=0.10, method="exact")
-
+    bounds = binconf(i, 20, alpha=0.20, method="exact")
+    print(bounds)
     if( bounds[2] <= p && p <= bounds[3] )
     {
       prob = prob + dbinom(i, 20, p)
@@ -45,10 +47,10 @@ ci_proportion = function(p)
 }
 
 ci_proportion(0.2)
-# 0.9563281
+# 0.8441322
 
 ci_proportion(0.5)
-# 0.9586105
+# 0.8846817
 
 
 ###
