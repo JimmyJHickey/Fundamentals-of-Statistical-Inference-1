@@ -1,7 +1,7 @@
 ###
 # Jimmy Hickey
 # 2019-09-10
-# ST703 Homework 3 on Hypothesis Testing
+# ST703 Homework 2 on Hypothesis Testing
 ###
 
 ###
