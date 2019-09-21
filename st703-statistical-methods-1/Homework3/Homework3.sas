@@ -63,18 +63,41 @@ proc reg data=galton_pred simple;
 run;
 
 /*
-  f.
-    question about standard error
-    in parameter estimates table
-  g.
-    CI for beta_1
-  h.
-    regression equation
-  l.
-    R^2
-  m & n.
-    asking about sigma hat -> look for Root MSE
-  o.
-    STderr of Yhat when x=68
-      SE(beta_0 hat + beta_1 hat * 68)
+  3
 */
+
+
+data chirp;
+  infile '/folders/myfolders/grad-scripts/st703-statistical-methods-1/data/chirps.txt' firstobs=2;
+  input chirps temperature;
+run;
+
+
+proc corr data=chirp
+  plots=matrix(histogram) csscp;
+  var chirps temperature;
+run;
+
+* d. ;
+data add_predict_chirp;
+  input chirps temperature;
+datalines;
+. 80
+. 105
+;
+run;
+
+data chirp_pred;
+  set chirp add_predict_chirp;
+run;
+
+proc reg data=chirp_pred simple;
+  model chirps=temperature / alpha=0.05 clb clm cli;
+  id temperature;
+  output out=chirp_reg
+    residual=r pred=yhat
+    ucl=pihigh lcl=pilow
+    uclm=cihigh lclm=cilow
+    stdp=stdmean;
+run;
+
