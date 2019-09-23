@@ -100,4 +100,3 @@ proc reg data=chirp_pred simple;
     uclm=cihigh lclm=cilow
     stdp=stdmean;
 run;
-
