@@ -15,5 +15,24 @@ data run;
 run;
 
 proc reg data=run;
-  model pace=age age2;
+  model pace=age age2 / clb alpha=0.05 clm cli xpx i covb;
+run;
+
+
+
+* e. ;
+data add_predict;
+  input obs sex $ age age2 pace;
+datalines;
+999 F 34 1156 .
+;
+run;
+
+data run_pred;
+  set add_predict run;
+run;
+
+
+proc reg data=run_pred;
+  model pace=age age2 / clb alpha=0.05 clm cli xpx i covb;
 run;

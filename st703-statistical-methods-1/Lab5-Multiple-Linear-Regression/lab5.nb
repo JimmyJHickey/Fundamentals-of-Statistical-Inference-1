@@ -1,0 +1,96 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      2647,         88]
+NotebookOptionsPosition[      1872,         64]
+NotebookOutlinePosition[      2224,         80]
+CellTagsIndexPosition[      2181,         77]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["6.", "Section",
+ CellChangeTimes->{{3.778860810456531*^9, 
+  3.778860810567686*^9}},ExpressionUUID->"9d065a4f-2302-4cc3-a588-\
+8052712841b8"],
+
+Cell[CellGroupData[{
+
+Cell["a.", "Subsection",
+ CellChangeTimes->{{3.778860824853693*^9, 
+  3.778860825139504*^9}},ExpressionUUID->"be0c93e7-0da0-4e83-9da7-\
+489b21c34d1d"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"(", 
+    RowBox[{"SSEred", " ", "-", " ", "SSEfull"}], ")"}], "/", 
+   RowBox[{"(", 
+    RowBox[{"p", "-", "q"}], ")"}]}], "/", "MSEfull"}]], "Input",
+ CellChangeTimes->{{3.778860639249205*^9, 
+  3.778860655738023*^9}},ExpressionUUID->"77eaf383-1eac-40b6-98cd-\
+755b5d3f8791"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ FractionBox[
+  FractionBox[
+   RowBox[{"753.83180", "-", "743.21511"}], 
+   RowBox[{"6", "-", "2"}]], "8.74371"]], "Input",
+ CellChangeTimes->{{3.778860658319573*^9, 3.778860715283787*^9}, {
+  3.778860772919793*^9, 3.778860779814176*^9}, {3.7788611657262383`*^9, 
+  3.7788611811815987`*^9}},
+ CellLabel->"In[14]:=",ExpressionUUID->"f1159cf9-12f4-4417-bb35-efbbc5aa8585"],
+
+Cell[BoxData["0.3035522106748755`"], "Output",
+ CellChangeTimes->{3.7788607809037724`*^9, 3.778861182263921*^9},
+ CellLabel->"Out[14]=",ExpressionUUID->"bee35479-6da4-400c-880e-c39032d2f195"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{640, 755},
+WindowMargins->{{Automatic, 0}, {Automatic, 0}},
+FrontEndVersion->"11.3 for Mac OS X x86 (32-bit, 64-bit Kernel) (March 5, \
+2018)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 147, 3, 67, "Section",ExpressionUUID->"9d065a4f-2302-4cc3-a588-8052712841b8"],
+Cell[CellGroupData[{
+Cell[752, 29, 150, 3, 54, "Subsection",ExpressionUUID->"be0c93e7-0da0-4e83-9da7-489b21c34d1d"],
+Cell[905, 34, 323, 9, 30, "Input",ExpressionUUID->"77eaf383-1eac-40b6-98cd-755b5d3f8791"],
+Cell[CellGroupData[{
+Cell[1253, 47, 385, 8, 55, "Input",ExpressionUUID->"f1159cf9-12f4-4417-bb35-efbbc5aa8585"],
+Cell[1641, 57, 191, 2, 68, "Output",ExpressionUUID->"bee35479-6da4-400c-880e-c39032d2f195"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
