@@ -18,6 +18,10 @@ proc reg data=run;
   model pace=age age2 / clb alpha=0.05 clm cli xpx i covb;
 run;
 
+proc corr data=run;
+  plots=matrix(histogram) csscp;
+  var age age2;
+run;
 
 
 * e. ;
