@@ -5,3 +5,8 @@ Icon*
 *.Rhistory
 *.RData
 data
+
+*.aux
+*.dvi
+*.log
+*.synctex.gz
