@@ -1,0 +1,84 @@
+\documentclass[]{article}
+
+%opening
+\title{}
+\author{}
+
+\usepackage{amstext}
+
+\begin{document}
+
+\maketitle
+
+\section*{2019-10-08}
+Studying for ST703 Exam 1
+
+$$
+\overline{X-\bar{x}} = \sum(x_i - \bar{x}) = 0
+$$
+
+$$
+Cov(X, Y) = E\Big(  (X - E(X)) \cdot (Y-E(Y)) \Big)
+$$
+
+for $\theta = \beta_1 - \beta_2$
+$$
+Var(\hat{\beta_1}  - \hat{\beta_2}) = Var(\hat{\beta_1}) + Var(\hat{\beta_2}) - 2 Cov( Var(\hat{\beta_1}), Var(\hat{\beta_2}))
+$$
+
+
+$$
+stderr = \frac{ \sigma }{ \sqrt{n}  }
+$$
+
+
+$$
+stderr(\hat{\beta_0)} = \sqrt{s^2 \Big( \frac{ 1 }{ n } + \frac{ (x_0 - \bar{x})^2 }{ \sum(x_i - \bar{x})^2  } \Big)}
+$$
+
+$$
+stderr(\hat{\beta_1}) = \sqrt{\frac{ s^2 }{ \sum(x_i - \bar{x})^2 }}
+$$
+
+
+$$
+s^2 = MSE
+$$
+
+$$
+\text{Covariance Matrix} = \sigma^2 \cdot (X^T X)^{-1}
+$$
+
+$$
+\sigma = \sqrt{MSE} \ \ \ \forall x = x_i
+$$
+
+$$
+T = \frac{ \hat{\theta} - \theta_0 }{ SE(\hat{\theta}) }
+$$
+
+
+$$
+SSRegn = \sum(\hat{y_i} - \bar{y})^2
+$$
+
+$$
+SSE = \sum(y_i - \hat{y_i})^2
+$$
+
+
+$$
+SST = \sum(y_i - \bar{y})^2
+$$
+
+$$
+R(\beta_1, \beta_2 | \beta_0) = \text{full model SSE of ANOVA}
+$$
+
+$$
+R(\beta_2 | \beta_0) = \text{full model SSE - Type II SS }  \beta_1
+$$
+
+We are 90
+
+\end{document}
