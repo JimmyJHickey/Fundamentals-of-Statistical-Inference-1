@@ -1,10 +1,13 @@
 \documentclass[]{article}
 
-%opening
-\title{}
-\author{}
-
 \usepackage{amstext}
+
+
+%opening
+\title{Random Latex Notes}
+\author{Jimmy Hickey}
+\date{}
+
 
 \begin{document}
 
@@ -80,5 +83,27 @@ R(\beta_2 | \beta_0) = \text{full model SSE - Type II SS }  \beta_1
 $$
 
 We are 90
+
+\section*{2019-10-11}
+Studying for ST520 midterm
+
+$$
+E[\hat{\theta}] = \theta
+$$
+
+$$
+P[D | E] \approx 0 \  \land \ P[D | \bar{E}] \approx 0 \Rightarrow \theta \approx \psi
+$$
+
+In a prospective study, $n_{1+}$ and $n_{2+}$ are fixed.
+
+$$
+[(X_1 > r_1) \land (X_1 + X_2 > r)] \lor (X_1 > r)
+$$
+
+We will estimate $\Delta$ using $\hat{\Delta} = \bar{Y_1} - \bar{Y_2}$, where $\bar{Y_1}$ is the sample average response of the $n_1$ patients receiving treatment $A$, and $\bar{Y_2}$ is the sample average response of the $n_2$ patients receiving treatment $B$. Notice $\hat{\Delta}$ is most efficient when $\pi = 0.5 $. \\
+
+\noindent
+Start with $m$ balls labeled $A$ and $m$ balls labeled $B$. Randomly pick a ball for the first patient and assign the treatment indicated by the ball. If the patient recieves $A$, then replace that $A$ ball with a $B$.
 
 \end{document}
