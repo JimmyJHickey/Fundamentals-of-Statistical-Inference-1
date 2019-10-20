@@ -30,3 +30,52 @@ run;
 proc glm data=grades;
   model grade=iq time iq*time;
 run;
+
+
+/*
+  4.
+*/
+data insulin;
+  input concentration insulin;
+  datalines;
+low 1.59
+low 1.73
+low 3.64
+low 1.97
+
+
+
+
+/*
+  5.
+*/
+data chem_influx;
+  input dose log_d influx;
+ datalines;
+1  0.00  21
+1  0.00  24
+1  0.00  26
+1  0.00  25
+10 2.30  36
+10 2.30  38
+10 2.30  36
+10 2.30  35
+100  4.61  43
+100  4.61  47
+100  4.61  45
+100  4.61  49
+1000 6.91  54
+1000 6.91  56
+1000 6.91  58
+1000 6.91  53
+;
+run;
+
+* a ;
+
+proc reg data=chem_influx simple;
+  * clb: CI for coefficients;
+  * clm: estimate for E(Y) by CI;
+  * cli: predict Y by PI;
+  model influx=log_d / alpha=0.05 clb clm cli;
+run;
