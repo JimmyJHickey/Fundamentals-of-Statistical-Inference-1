@@ -13,22 +13,25 @@ options linesize=75 pagesize=60 pageno=1 nodate;
 
 data grades; input grade iq time @@; 
 iqtime=iq*time;
-datalines;
+datalines;  
 75 105 10  79 110 12  68 120 6  85 116 13  
 91 122 16  79 130 8  98 114 20  76 102 15  . 113 14
 run;
 
 proc reg data=grades;
-  model grade=time / p clm cli xpx i covb;
+  Reduced: model grade=time / p clm cli xpx i covb;
 run;
 
+proc corr data=grades;
+  var grade iq time iqtime;
+run;
 
 proc reg data=grades;
   model grade=iq time iqtime/ p clm cli xpx i covb;
 run;
 
 proc glm data=grades;
-  model grade=iq time iq*time;
+  Full: model grade=iq time iq*time;
 run;
 
 
@@ -116,13 +119,14 @@ run;
 */
 
 * a i ;
-proc reg data=chem_influx alpha=0.01;
-  model influx=dose/ p clb cli xpx i covb;
+proc glm data=chem_influx alpha=0.005;
+  class dose; 
+  model influx=dose / clm xpx i p solution clparm;
 run;
 
 * a ii ;
-proc reg data=chem_influx alpha=0.01;
-  model influx=log_d/ p clb cli xpx i covb;
+proc glm data=chem_influx alpha=0.005;
+  class log_d; 
+  model influx=log_d / clm xpx i p solution clparm;
 run;
-
 
