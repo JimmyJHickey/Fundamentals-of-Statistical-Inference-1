@@ -1,0 +1,99 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      2670,         91]
+NotebookOptionsPosition[      1759,         64]
+NotebookOutlinePosition[      2111,         80]
+CellTagsIndexPosition[      2068,         77]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Homework 6", "Title",
+ CellChangeTimes->{{3.780845631987913*^9, 
+  3.7808456348534*^9}},ExpressionUUID->"f38f3a20-f2ac-4b02-8e77-1c7980357277"],
+
+Cell["\<\
+Jimmy Hickey
+2019-10-23\
+\>", "Subsubsection",
+ CellChangeTimes->{{3.7808456359839983`*^9, 
+  3.7808456458374557`*^9}},ExpressionUUID->"8810226c-a964-40d5-9aee-\
+3dab3910d6e7"],
+
+Cell[CellGroupData[{
+
+Cell["1.", "Section",
+ CellChangeTimes->{{3.780845653884934*^9, 
+  3.780845654009438*^9}},ExpressionUUID->"2ec92f98-69df-4f92-a61f-\
+08fd79fbe0af"],
+
+Cell[CellGroupData[{
+
+Cell["a.", "Subsubsection",
+ CellChangeTimes->{{3.78084566328371*^9, 
+  3.7808456633695602`*^9}},ExpressionUUID->"284f5704-4679-4f2d-ab1e-\
+e6bb27a06368"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"11", "+", "9", "+", "23", "+", "3", "+", "13", "+", "23", "+", "21",
+   "-", "7"}]], "Input",
+ CellChangeTimes->{{3.7808456664163*^9, 3.7808456740830584`*^9}},
+ CellLabel->"In[7]:=",ExpressionUUID->"8bf507a7-b9e6-4ebb-9af7-f2446367ff5a"],
+
+Cell[BoxData["96"], "Output",
+ CellChangeTimes->{3.780845674648777*^9},
+ CellLabel->"Out[7]=",ExpressionUUID->"55a7afab-c28f-4a9f-909a-1fdab128c648"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{808, 655},
+WindowMargins->{{4, Automatic}, {Automatic, 4}},
+FrontEndVersion->"11.3 for Mac OS X x86 (32-bit, 64-bit Kernel) (March 5, \
+2018)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 149, 2, 98, "Title",ExpressionUUID->"f38f3a20-f2ac-4b02-8e77-1c7980357277"],
+Cell[732, 26, 186, 6, 71, "Subsubsection",ExpressionUUID->"8810226c-a964-40d5-9aee-3dab3910d6e7"],
+Cell[CellGroupData[{
+Cell[943, 36, 147, 3, 53, "Section",ExpressionUUID->"2ec92f98-69df-4f92-a61f-08fd79fbe0af"],
+Cell[CellGroupData[{
+Cell[1115, 43, 154, 3, 45, "Subsubsection",ExpressionUUID->"284f5704-4679-4f2d-ab1e-e6bb27a06368"],
+Cell[CellGroupData[{
+Cell[1294, 50, 261, 4, 30, "Input",ExpressionUUID->"8bf507a7-b9e6-4ebb-9af7-f2446367ff5a"],
+Cell[1558, 56, 149, 2, 34, "Output",ExpressionUUID->"55a7afab-c28f-4a9f-909a-1fdab128c648"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
