@@ -1,7 +1,7 @@
 options linesize=75 pagesize=60 pageno=1 nodate;
 
 /**********************************
-  Jimmy Hickey
+  Squire James
   2019-10-23
   ST703 Homework 6
 **********************************/
@@ -47,11 +47,21 @@ proc glm data=plants;
   estimate 'theta3'  group 0 1 -1 -1 1;
   estimate 'theta4'  group 4 -1 -1 -1 -1; 
 
-
   means group / t scheffe bon tukey cldiff;
+run;
 
-/*   lsmeans group / pdiff; */
-/*   lsmeans group / pdiff adjust=scheffe;  */
-/*   lsmeans group / pdiff adjust=bon; */
-/*   lsmeans group / pdiff adjust=tukey; */
+proc multtest data=plants order=data fdr 
+          plots=(adjusted(unpack) pbytest(vref=.05));
+  class group;
+  test mean(height / ddfm=pooled); 
+  contrast '1-2' 1 -1;
+  contrast '1-3' 1 0 -1; 
+  contrast '1-4' 1 0 0 -1; 
+  contrast '1-5' 1 0 0 0 -1; 
+  contrast '2-3' 0 1 -1; 
+  contrast '2-4' 0 1 0 -1; 
+  contrast '2-5' 0 1 0 0 -1; 
+  contrast '3-4' 0 0 1 -1;
+  contrast '3-5' 0 0 1 0 -1;
+  contrast '4-5' 0 0 0 1 -1;
 run;
