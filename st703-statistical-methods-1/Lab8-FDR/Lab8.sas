@@ -123,6 +123,49 @@ data hiking_quartic;
 run;
 
 proc reg data=hiking_quartic;
-  quartic: model y=x x2 x3 x4;
   simple: model y = x;
+  quartic: model y=x x2 x3 x4;
+  cubic: model y = x x2 x3; 
+run;
+
+proc glm data=hiking;
+  class x;
+  model y=x;
+run;
+
+
+/* THIS IS BROKEN ON MAC */
+
+/* data hiking; set hiking; */
+/*   xclass=x; run; */
+/* symbol1 i=rlclm95 v=circle c=blue; */
+/* symbol2 i=rqclm95 v=circle c=blue; */
+/* proc gplot data=hiking; */
+/*   plot y*x=1 y*x=2;  */
+/* proc glm data=hiking; */
+/*   class xclass; */
+/*   model y=x xclass; */
+/* proc glm data=hiking; */
+/*   class xclass; */
+/*   model y=x x*x xclass; */
+
+
+
+
+* lack of fit test ;
+
+proc glm data=hiking;
+  class xclass;
+  model y=x x*x x*x*x xclass;
+run;
+
+
+
+* modeling log ;
+data hiking_log; set hiking;
+  x = log(x+0.0000001);
+  xclass = x;
+  x2 = x*x;
+  x3 = x*x*x;
+  x4 = x*x*x*x;
 run;
