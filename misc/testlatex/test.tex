@@ -1,7 +1,13 @@
+
 \documentclass[]{article}
 
 \usepackage{amstext}
 
+% for align*
+\usepackage{amsmath}
+
+% for placing tables [H] ere!
+\usepackage{float}
 
 %opening
 \title{Random Latex Notes}
@@ -106,4 +112,91 @@ We will estimate $\Delta$ using $\hat{\Delta} = \bar{Y_1} - \bar{Y_2}$, where $\
 \noindent
 Start with $m$ balls labeled $A$ and $m$ balls labeled $B$. Randomly pick a ball for the first patient and assign the treatment indicated by the ball. If the patient recieves $A$, then replace that $A$ ball with a $B$.
 
+
+\section*{2019-10-08}
+Studying for ST703 Exam 2
+
+
+\begin{table}[h]
+	\begin{tabular}{r | l l  l l  }
+		Source & DF & SS & MS & F  \\ \hline
+		Model & $ t - 1$ & $\sum_{i-1}^{t} \sum_{j=1}^{n_1} \Big( \bar{y}_{i+} - \bar{y}_{++}  \Big)^2  $ & $\frac{SSM}{df_M}$ & $\frac{ MSM }{ MSE }$ \\
+		Error & $\sum_{i = 1}^{t} (n_i) - t$ &  $\sum_{i=1}^{t} \sum_{j=1}^{n_i} \Big( y_{ij} - \bar{y}_{i+} \Big)^2 $ & $\frac{ SSE }{ df_E }$ & \\
+		Total & $\sum_{i=1}^{t} (n_i) -1$ & $\sum_{i=1}^{t} \sum_{j=1}^{n_1} \Big( y_{ij} - \bar{y}_{++} \Big)^2$ & &
+	\end{tabular}
+\end{table}
+
+
+$$\hat{\beta}$$
+
+$$X \hat{\beta}$$
+
+
+
+\begin{table}[H]
+\begin{tabular}{r | l | l}
+ & Partial SS (III)& Sequential SS (I) \\  
+ & used in t-test & incremental \\	\hline
+ $X_1$ & $R(\beta_1 | \beta_0, \beta_2, \beta_3)$ & $R(\beta_1  | \beta_0)$ \\
+ $X_2$ & $R(\beta_2 | \beta_0, \beta_1, \beta_3)$ & $R(\beta_2  | \beta_0, \beta_1)$ \\
+  $X_3$ & $R(\beta_3 | \beta_0, \beta_1, \beta_2)$ & $R(\beta_3  | \beta_0, \beta_1, \beta_2)$ \\
+\end{tabular}
+\end{table}
+
+
+
+$$
+Var(a_1 \hat{\beta}_1 + a_2 \hat{\beta}_2) =
+a_1^2 Var(\hat{\beta}_1) + a_2^2 Var(\hat{\beta}_2) + 2 a_1 a_2 Cov(\hat{\beta}_1, \hat{\beta}_2)
+$$
+
+
+\begin{align*}
+	| \hat{\theta} | & \geq t_{df_{error}, \alpha / 2} SE(\hat{\theta}) \text{; Fisher} \\
+		& \geq t_{df_{error}, \frac{ 1 }{ k } \frac{ \alpha }{ 2 }} SE(\hat{\theta}) \text{; Bonferroni}\\
+		& \geq q_{t, df_{error} , \alpha } \cdot \sqrt{ \frac{ 1 }{  2 }} SE(\hat{\theta}) \text{; Tukey-Kramer} \\
+		& \geq \sqrt{(t-1) F^{t-1}_{df_{error}, \alpha }} SE(\hat{\theta}) \text{; Scheffe}\\
+\end{align*}
+
+$\nu$ is the df used to estimate $\sigma^2$. 
+$W_i$ is the sample mean for group $i$.
+
+
+$$\mu_P - \mu = 3$$
+
+$$\mu_T - \mu = 3$$
+
+$$\mu_S - \mu = -6$$
+
+$$\mu_E - \mu = 0$$
+
+$$\mu_C - \mu = 0$$
+
+
+if null is true this subtraction is 0 so $MSModel = \sigma^2 = MSE$
+
+Pooled variance = $MSE$
+
+Sample Variance = $\frac{ 1 }{ N-1 } \sum (y_i - \bar{y})^2 = \frac{ SSTotal }{ N-1 }$
+
+
+Remember 
+
+$$
+t = \frac{ \hat{\theta} - \theta_0 }{ SE( \hat{\theta_0})  } \Rightarrow \frac{ \hat{\mu}_1 - \hat{\mu}_2 - \theta_0 }{ \sqrt{MSE ( 1/n_1 + 1/n_2)} }
+$$
+
+
+2-sided F p-value = $2 \Big[ 1 - F_{t_{n-1}}( |t_{obs}| ) \Big]$\\
+
+
+
+\noindent
+Interpretation Example: $\beta_0$ is the effect from location 5 for initial weight = 0, $\beta_{1-4}$ are the differences in effects between locations 1-4 and 5 for fixed initial weight.
+
+
+
+$E_{ij} \sim N(0,\sigma^2)$ where $\sigma^2$ is the population variance of the response
+
 \end{document}
+
