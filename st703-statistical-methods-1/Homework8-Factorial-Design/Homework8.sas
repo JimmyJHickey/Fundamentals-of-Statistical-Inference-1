@@ -102,12 +102,12 @@ run;
 
 * a. ;
 
-proc glm data=cholest;
+proc glm data=cholest order = data;
   class cohort;
   model chol = cohort / clparm ;
   
-  contrast 'Ages' cohort 2 2 -2 -2 ;
-  contrast 'Genders' cohort 2 -2 2 -2 ;
+  contrast 'Ages' cohort 0.5 0.5 -0.5 -0.5 ;
+  contrast 'Genders' cohort 0.5 -0.5 0.5 -0.5 ;
   contrast 'Ages for Women' cohort 1 0 -1 0 ;
   contrast 'Ages for Men' cohort 0 1 0 -1 ;
   contrast 'Genders for younger' cohort 1 -1 0 0 ;
@@ -115,8 +115,8 @@ proc glm data=cholest;
   contrast 'Between ages for men and women the same' cohort 1 -1 -1 1 ;
   contrast 'Between genders for the same ages the same' cohort 1 -1 -1 1 ;
  
-  estimate 'Ages' cohort 2 2 -2 -2 ;
-  estimate 'Genders' cohort 2 -2 2 -2 ;
+  estimate 'Ages' cohort 0.5 0.5 -0.5 -0.5 ;
+  estimate 'Genders' cohort 0.5 -0.5 0.5 -0.5 ;
   estimate 'Ages for Women' cohort 1 0 -1 0 ;
   estimate 'Ages for Men' cohort 0 1 0 -1 ;
   estimate 'Genders for younger' cohort 1 -1 0 0 ;
@@ -125,7 +125,32 @@ proc glm data=cholest;
   estimate 'Between genders for the same ages the same' cohort 1 -1 -1 1 ;
 run;
 
+* b ;
 
+proc glm data = cholest order = data;
+  class age gender;
+  model chol = age|gender / clparm;
+
+  contrast '1 Ages' age 1 -1 gender 0 0 age*gender 0.5 0.5 -0.5 -0.5 ;
+  contrast '2 Gender' age 0 0 gender 1 -1 age*gender 0.5 -0.5 0.5 -0.5 ;
+  contrast '3 Ages, Women' age 1 -1 gender 0 0 age*gender 1 0 -1 0;
+  contrast '4 Ages, Men' age 1 -1 gender 0 0 age*gender 0 1 0 -1;
+  contrast '5 Gender, Young' age 0 0 gender 1 -1 age*gender 1 -1 0 0;
+  contrast '6 Gender, Older' age 0 0 gender 1 -1 age*gender 0 0 1 -1;
+  contrast '7 Age, Gender' age 0 0 gender 0 0 age*gender 1 -1 -1 1;
+  
+  estimate 'Main effect: Age' age 1 -1 gender 0 0 age*gender 0 0 0 0;
+  estimate 'Main effect: Gender' age 0 0 gender 1 -1 age*gender 0 0 0 0;
+  
+  estimate '1 Ages' age 1 -1 gender 0 0 age*gender 0.5 0.5 -0.5 -0.5 ;
+  estimate '2 Gender' age 0 0 gender 1 -1 age*gender 0.5 -0.5 0.5 -0.5 ;
+  estimate '3 Ages, Women' age 1 -1 gender 0 0 age*gender 1 0 -1 0 ;
+  estimate '4 Ages, Men' age 1 -1 gender 0 0 age*gender 0 1 0 -1 ;
+  estimate '5 Gender, Young' age 0 0 gender 1 -1 age*gender 1 -1 0 0 ;
+  estimate '6 Gender, Older' age 0 0 gender 1 -1 age*gender 0 0 1 -1 ;
+  estimate '7 Age, Gender' age 0 0 gender 0 0 age*gender 1 -1 -1 1 ;
+  
+run;
 
 /*
   3.
@@ -154,15 +179,41 @@ run;
 
 * 1 way model on treatment ;
 
-proc glm data=bees order=data;
+proc glm data = bees;
   class trmt;
-  model energy= trmt / clparm;
+  model energy = trmt / clparm;
   
-  estimate 'A. temp-sucrose: 20-&30-40 vs 20&30-60' trmt 0 -1 1 0 1 -1 0 0 0 ;
-  estimate 'B. temp-sucrose: 40' trmt 0 0.5 -0.5 0 0.5 -0.5 0 -1 1;
-/*   estimate 'C. ' trmt -1 ; */
+  contrast 'A' trmt 0 -1 1 0 1 -1 0 0 0 ;
+  contrast 'B' trmt 0 0.5 -0.5 0 0.5 -0.5 0 -1 1;
+  contrast 'C' trmt -1 0.5 0.5 1 -0.5 -0.5 0 0 0;
+  contrast 'D' trmt 0.5 -0.25 -0.25 0.5 -0.25 -0.25 -1 0.5 0.5;
   
-  
-  contrast 'iii'  trmt 0 -1 1 0 1 -1 0 0 0,
-                  trmt 0 0.5 -0.5 0 0.5 -0.5 0 -1 1;
+  contrast 'A & B'       trmt 0 -1 1 0 1 -1 0 0 0,
+                         trmt 0 0.5 -0.5 0 0.5 -0.5 0 -1 1;
+     
+  contrast 'C & D'       trmt -1 0.5 0.5 1 -0.5 -0.5 0 0 0,
+                         trmt 0.5 -0.25 -0.25 0.5 -0.25 -0.25 -1 0.5 0.5;
+run;
+
+proc glm data = bees order = data;
+  class temp sucrose;
+  model energy = temp|sucrose / clparm;
+
+  contrast 'A' 
+    temp 0 0 0
+    sucrose 0 0 0
+    temp*sucrose 0 -1 1 0 1 -1 0 0 0 ;
+  contrast 'B'
+    temp 0 0 0 
+    sucrose 0 0 0 
+    temp*sucrose 0 0.5 -0.5 0 0.5 -0.5 0 -1 1 ;
+  contrast 'C'
+    temp 0 0 0 
+    sucrose 0 0 0 
+    temp*sucrose -1 0.5 0.5 1 -0.5 -0.5 0 0 0 ;
+  contrast 'D'
+    temp 0 0 0 
+    sucrose 0 0 0
+    temp*sucrose 0.5 -0.25 -0.25 0.5 -0.25 -0.25 -1 0.5 0.5;
+    
 run;

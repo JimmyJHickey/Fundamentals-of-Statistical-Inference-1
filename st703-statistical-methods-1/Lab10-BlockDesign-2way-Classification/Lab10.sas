@@ -53,8 +53,8 @@ proc glm data=cholest;
   class cohort;
   model chol = cohort / clparm ;
   
-  contrast 'Ages' cohort 2 2 -2 -2 ;
-  contrast 'Genders' cohort 2 -2 2 -2 ;
+  contrast 'Ages' cohort 0.5 0.5 -0.5 -0.5 ;
+  contrast 'Genders' cohort 0.5 -0.5 0.5 -0.5 ;
   contrast 'Ages for Women' cohort 1 0 -1 0 ;
   contrast 'Ages for Men' cohort 0 1 0 -1 ;
   contrast 'Genders for younger' cohort 1 -1 0 0 ;
@@ -62,8 +62,8 @@ proc glm data=cholest;
   contrast 'Between ages for men and women the same' cohort 1 -1 -1 1 ;
   contrast 'Between genders for the same ages the same' cohort 1 -1 -1 1 ;
  
-  estimate 'Ages' cohort 2 2 -2 -2 ;
-  estimate 'Genders' cohort 2 -2 2 -2 ;
+  estimate 'Ages' cohort 0.5 0.5 -0.5 -0.5 ;
+  estimate 'Genders' cohort 0.5 -0.5 0.5 -0.5 ;
   estimate 'Ages for Women' cohort 1 0 -1 0 ;
   estimate 'Ages for Men' cohort 0 1 0 -1 ;
   estimate 'Genders for younger' cohort 1 -1 0 0 ;
@@ -103,8 +103,14 @@ proc glm data = bees;
   class trmt;
   model energy = trmt / clparm;
   
-  contrast 'temperature curve at sucrose=60 is parallel to the temperature curve at sucrose=40' trmt 0 -1 1 0 1 -1 0 0 0 ;
-  contrast 'temp 40 between sucrose 60 and 40 parallel to the avg of other temps at same sucrose range' trmt 0 0.5 -0.5 0 0.5 -0.5 0 -1 1;
-  contrast 'name 3' trmt -1 0.5 0.5 1 -0.5 -0.5 0 0 0;
-  contrast 'name 4' trmt 0.5 -0.25 -0.25 0.5 -0.25 -0.25 -1 0.5 0.5;
+  contrast 'A: temperature curve at sucrose=60 is parallel to the temperature curve at sucrose=40' trmt 0 -1 1 0 1 -1 0 0 0 ;
+  contrast 'B: temp 40 between sucrose 60 and 40 parallel to the avg of other temps at same sucrose range' trmt 0 0.5 -0.5 0 0.5 -0.5 0 -1 1;
+  contrast 'C:' trmt -1 0.5 0.5 1 -0.5 -0.5 0 0 0;
+  contrast 'D:' trmt 0.5 -0.25 -0.25 0.5 -0.25 -0.25 -1 0.5 0.5;
+  
+  contrast 'A & B'       trmt 0 -1 1 0 1 -1 0 0 0,
+                         trmt 0 0.5 -0.5 0 0.5 -0.5 0 -1 1;
+     
+  contrast 'C & D'       trmt -1 0.5 0.5 1 -0.5 -0.5 0 0 0,
+                         trmt 0.5 -0.25 -0.25 0.5 -0.25 -0.25 -1 0.5 0.5;
 run;
