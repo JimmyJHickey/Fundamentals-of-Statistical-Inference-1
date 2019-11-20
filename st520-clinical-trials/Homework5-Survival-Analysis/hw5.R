@@ -14,6 +14,9 @@ survival_times = data.frame(
   "failure" = c(1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1)
   )
 
+2 * pnorm(0.956292, lower.tail = FALSE)
+# 0.3389247
+
 
 ###
 # 5
@@ -36,17 +39,22 @@ median_standard = 5
 median_treatment = 7
 
 # hazard ratios for treatment and standard
-hr_treatment<-log(2)/median_treatment
+hr_treatment1<-log(2)/median_treatment
+hr_treatment2 = log(2) / 5.92
 
 hr_standard<-log(2)/median_standard
 
+
+
 # death to detect for power 0.9, alpha = 0.05, and 3 treatments
-deaths = 672
+deaths = 671
 
 
 f<-function(a,l){
-  .5*rate*(a-exp(-hr_treatment*l)*(exp(hr_treatment*a)-1)/hr_treatment) +
-     .5*rate*(a-exp(-hr_standard*l)*(exp(hr_standard*a)-1)/hr_standard)-deaths
+  1/3*accrual_rate*(a-exp(-hr_treatment1*l)*(exp(hr_treatment1*a)-1)/hr_treatment1) +
+    1/3 *accrual_rate*(a-exp(-hr_treatment2*l)*(exp(hr_treatment2*a)-1)/hr_treatment2) +
+    1/3*accrual_rate*(a-exp(-hr_standard*l)*(exp(hr_standard*a)-1)/hr_standard) -
+    deaths
 }
 
 # min length of study
@@ -66,7 +74,7 @@ uniroot(f2,c(1,50))$root
 
 # minimum accrual
 # accrual required deaths and stop accrual immediately 
-lower<-deaths/rate
+lower<-deaths/accrual_rate
 
 n<-100  
 for (i in 1:n){
@@ -104,47 +112,49 @@ trt = calrisk$V3
 years = days / 365.25
 risk = calrisk$risk
 
-km <- survfit(Surv(days, cens)~risk)
+# km = kaplan meier
+km <- survfit(Surv(years, cens)~risk)
 summary(km)
 
 
 
 
-plot(km,xlab="years",ylab="prob",lty=1:2,col=1:2)
+plot(km,xlab="years",ylab="prob", main = "not stratified", lty=1:2,col=1:2)
 legend(2, .4,  c("risk=0",
               "risk=1"),
        lty=1:2,col=1:2)
 
 
-lr <- survdiff(Surv(days,cens)~risk)
+# lr = log rank 
+lr <- survdiff(Surv(years,cens)~risk)
 lr
 # Chisq= 8.3  on 1 degrees of freedom, p= 0.00391 
 
 
-# Stratify by treatment
+# Stratify by risk
 
-# treatment 0
+# risk = 0
 
-km_treat0 = survfit(Surv(days, cens)~risk, subset = (trt==0))
+km_risk0 = survfit(Surv(years, cens)~trt, subset = (risk==0))
 
-plot(km_treat0,xlab="years",ylab="prob",lty=1:2,col=1:2)
-legend(2, .4,  c("risk=0",
-                 "risk=1"),
+plot(km_risk0,xlab="years",ylab="prob", main = "strata: risk 0", lty=1:2,col=1:2)
+legend(2, .4,  c("trt=0",
+                 "trt=1"),
        lty=1:2,col=1:2)
 
-lr_treat0 <- survdiff(Surv(days, cens)~risk, subset = (trt==0))
-lr_treat0
-# Chi sq = 0.3, p = 0.601
+lr_risk0 <- survdiff(Surv(years, cens)~trt, subset = (risk==0))
+lr_risk0
+# Chisq= 0.2  on 1 degrees of freedom, p= 0.688 
 
-# treatment 1
+# risk 1
 
-km_treat1 <- survfit(Surv(days, cens)~risk, subset = (trt==1))
+km_risk1 <- survfit(Surv(years, cens)~trt, subset = (risk==1))
 
-plot(km_treat1,xlab="years",ylab="prob",lty=1:2,col=1:2)
-legend(2, .4,  c("risk=0",
-                 "risk=1"),
+plot(km_risk1,xlab="years",ylab="prob", main = "strata: risk = 1", lty=1:2,col=1:2)
+legend(2, .4,  c("trt=0",
+                 "trt=1"),
        lty=1:2,col=1:2)
 
-lr_treat1 <- survdiff(Surv(days, cens)~risk, subset = (trt==1))
-lr_treat1
-# Chisq= 12.7  on 1 degrees of freedom, p= 0.000366
+lr_risk1 <- survdiff(Surv(years, cens)~trt, subset = (risk==1))
+lr_risk1
+#  Chisq= 11.7  on 1 degrees of freedom, p= 0.000628 
