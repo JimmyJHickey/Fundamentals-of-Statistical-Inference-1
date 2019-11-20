@@ -198,5 +198,30 @@ Interpretation Example: $\beta_0$ is the effect from location 5 for initial weig
 
 $E_{ij} \sim N(0,\sigma^2)$ where $\sigma^2$ is the population variance of the response
 
+
+\section*{2019-11-18}
+
+Studying for 701 midterm 2
+
+$$
+1 - \frac{ u }{ u+v } = \frac{ v }{ u+v }
+$$
+
+
+
+\begin{align*}
+	M_X(t) & = \int_{0} ^{\infty} e^{t x} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}} \cdot  x^{p/2-1}  e^{-x/2} dx\\
+		& = \int_{0} ^{\infty} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}}  x^{p/2-1} \cdot e^{-x/2 + tx} dx\\
+		& = \int_{0} ^{\infty} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}}  x^{p/2-1} \cdot e^{-x/2 (1-2t)} dx\\
+		& = (1-2t)^{-(p/2-1)}  \int_{0} ^{\infty} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}} \cdot x^{p/2-1}  e^{-x/2 (1-2t)}  (1-2t)^{p/2-1} dx\\
+		& = (1-2t)^{-(p/2-1)}  \int_{0} ^{\infty} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}} \cdot (x (1-2t))^{p/2-1}  e^{-x/2 (1-2t)}  dx\\ \\
+		u & = x(1-2t) \\
+		du & = (1-2t) dx \\ \\
+		& = (1-2t)^{-(p/2-1)}  \int_{0} ^{\infty} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}} \cdot (u)^{p/2-1}  e^{-u/2 } \frac{ 1 }{ 1-2t }  du\\ 
+		& = \frac{ (1-2t)^{-p/2 + 1} }{ 1-2t } \cdot 1 \\
+		& = (1-2t)^{-p/2}
+\end{align*}
+
+
 \end{document}
 
