@@ -10,4 +10,4 @@ text = sys.argv[1]
 text_array = text.split(',')
 
 text_array = [ "# " + i.strip(' ') for i in text_array ]
-print('\n\n\n\n'.join(text_array) + "\n\n\n")
+print('\n****\n\n\n'.join(text_array) + "\n****\n\n")
