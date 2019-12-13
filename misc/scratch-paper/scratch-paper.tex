@@ -1,0 +1,499 @@
+
+\documentclass[]{article}
+
+\usepackage{amstext}
+
+% for align*
+\usepackage{amsmath}
+
+% for placing tables [H] ere!
+\usepackage{float}
+
+%opening
+\title{Random Latex Notes}
+\author{Jimmy Hickey}
+\date{}
+
+
+\begin{document}
+
+\maketitle
+
+\section*{2019-10-08}
+Studying for ST703 Exam 1
+
+$$
+\overline{X-\bar{x}} = \sum(x_i - \bar{x}) = 0
+$$
+
+$$
+Cov(X, Y) = E\Big(  (X - E(X)) \cdot (Y-E(Y)) \Big)
+$$
+
+for $\theta = \beta_1 - \beta_2$
+$$
+Var(\hat{\beta_1}  - \hat{\beta_2}) = Var(\hat{\beta_1}) + Var(\hat{\beta_2}) - 2 Cov( Var(\hat{\beta_1}), Var(\hat{\beta_2}))
+$$
+
+
+$$
+stderr = \frac{ \sigma }{ \sqrt{n}  }
+$$
+
+
+$$
+stderr(\hat{\beta_0)} = \sqrt{s^2 \Big( \frac{ 1 }{ n } + \frac{ (x_0 - \bar{x})^2 }{ \sum(x_i - \bar{x})^2  } \Big)}
+$$
+
+$$
+stderr(\hat{\beta_1}) = \sqrt{\frac{ s^2 }{ \sum(x_i - \bar{x})^2 }}
+$$
+
+
+$$
+s^2 = MSE
+$$
+
+$$
+\text{Covariance Matrix} = \sigma^2 \cdot (X^T X)^{-1}
+$$
+
+$$
+\sigma = \sqrt{MSE} \ \ \ \forall x = x_i
+$$
+
+$$
+T = \frac{ \hat{\theta} - \theta_0 }{ SE(\hat{\theta}) }
+$$
+
+
+$$
+SSRegn = \sum(\hat{y_i} - \bar{y})^2
+$$
+
+$$
+SSE = \sum(y_i - \hat{y_i})^2
+$$
+
+
+$$
+SST = \sum(y_i - \bar{y})^2
+$$
+
+$$
+R(\beta_1, \beta_2 | \beta_0) = \text{full model SSE of ANOVA}
+$$
+
+$$
+R(\beta_2 | \beta_0) = \text{full model SSE - Type II SS }  \beta_1
+$$
+
+We are 90
+
+\section*{2019-10-11}
+Studying for ST520 midterm
+
+$$
+E[\hat{\theta}] = \theta
+$$
+
+$$
+P[D | E] \approx 0 \  \land \ P[D | \bar{E}] \approx 0 \Rightarrow \theta \approx \psi
+$$
+
+In a prospective study, $n_{1+}$ and $n_{2+}$ are fixed.
+
+$$
+[(X_1 > r_1) \land (X_1 + X_2 > r)] \lor (X_1 > r)
+$$
+
+We will estimate $\Delta$ using $\hat{\Delta} = \bar{Y_1} - \bar{Y_2}$, where $\bar{Y_1}$ is the sample average response of the $n_1$ patients receiving treatment $A$, and $\bar{Y_2}$ is the sample average response of the $n_2$ patients receiving treatment $B$. Notice $\hat{\Delta}$ is most efficient when $\pi = 0.5 $. \\
+
+\noindent
+Start with $m$ balls labeled $A$ and $m$ balls labeled $B$. Randomly pick a ball for the first patient and assign the treatment indicated by the ball. If the patient recieves $A$, then replace that $A$ ball with a $B$.
+
+
+\section*{2019-10-08}
+Studying for ST703 Exam 2
+
+
+\begin{table}[h]
+	\begin{tabular}{r | l l  l l  }
+		Source & DF & SS & MS & F  \\ \hline
+		Model & $ t - 1$ & $\sum_{i-1}^{t} \sum_{j=1}^{n_1} \Big( \bar{y}_{i+} - \bar{y}_{++}  \Big)^2  $ & $\frac{SSM}{df_M}$ & $\frac{ MSM }{ MSE }$ \\
+		Error & $\sum_{i = 1}^{t} (n_i) - t$ &  $\sum_{i=1}^{t} \sum_{j=1}^{n_i} \Big( y_{ij} - \bar{y}_{i+} \Big)^2 $ & $\frac{ SSE }{ df_E }$ & \\
+		Total & $\sum_{i=1}^{t} (n_i) -1$ & $\sum_{i=1}^{t} \sum_{j=1}^{n_1} \Big( y_{ij} - \bar{y}_{++} \Big)^2$ & &
+	\end{tabular}
+\end{table}
+
+
+$$\hat{\beta}$$
+
+$$X \hat{\beta}$$
+
+
+
+\begin{table}[H]
+\begin{tabular}{r | l | l}
+ & Partial SS (III)& Sequential SS (I) \\  
+ & used in t-test & incremental \\	\hline
+ $X_1$ & $R(\beta_1 | \beta_0, \beta_2, \beta_3)$ & $R(\beta_1  | \beta_0)$ \\
+ $X_2$ & $R(\beta_2 | \beta_0, \beta_1, \beta_3)$ & $R(\beta_2  | \beta_0, \beta_1)$ \\
+  $X_3$ & $R(\beta_3 | \beta_0, \beta_1, \beta_2)$ & $R(\beta_3  | \beta_0, \beta_1, \beta_2)$ \\
+\end{tabular}
+\end{table}
+
+
+
+$$
+Var(a_1 \hat{\beta}_1 + a_2 \hat{\beta}_2) =
+a_1^2 Var(\hat{\beta}_1) + a_2^2 Var(\hat{\beta}_2) + 2 a_1 a_2 Cov(\hat{\beta}_1, \hat{\beta}_2)
+$$
+
+
+\begin{align*}
+	| \hat{\theta} | & \geq t_{df_{error}, \alpha / 2} SE(\hat{\theta}) \text{; Fisher} \\
+		& \geq t_{df_{error}, \frac{ 1 }{ k } \frac{ \alpha }{ 2 }} SE(\hat{\theta}) \text{; Bonferroni}\\
+		& \geq q_{t, df_{error} , \alpha } \cdot \sqrt{ \frac{ 1 }{  2 }} SE(\hat{\theta}) \text{; Tukey-Kramer} \\
+		& \geq \sqrt{(t-1) F^{t-1}_{df_{error}, \alpha }} SE(\hat{\theta}) \text{; Scheffe}\\
+\end{align*}
+
+$\nu$ is the df used to estimate $\sigma^2$. 
+$W_i$ is the sample mean for group $i$.
+
+
+$$\mu_P - \mu = 3$$
+
+$$\mu_T - \mu = 3$$
+
+$$\mu_S - \mu = -6$$
+
+$$\mu_E - \mu = 0$$
+
+$$\mu_C - \mu = 0$$
+
+
+if null is true this subtraction is 0 so $MSModel = \sigma^2 = MSE$
+
+Pooled variance = $MSE$
+
+Sample Variance = $\frac{ 1 }{ N-1 } \sum (y_i - \bar{y})^2 = \frac{ SSTotal }{ N-1 }$
+
+
+Remember 
+
+$$
+t = \frac{ \hat{\theta} - \theta_0 }{ SE( \hat{\theta_0})  } \Rightarrow \frac{ \hat{\mu}_1 - \hat{\mu}_2 - \theta_0 }{ \sqrt{MSE ( 1/n_1 + 1/n_2)} }
+$$
+
+
+2-sided F p-value = $2 \Big[ 1 - F_{t_{n-1}}( |t_{obs}| ) \Big]$\\
+
+
+
+\noindent
+Interpretation Example: $\beta_0$ is the effect from location 5 for initial weight = 0, $\beta_{1-4}$ are the differences in effects between locations 1-4 and 5 for fixed initial weight.
+
+
+
+$E_{ij} \sim N(0,\sigma^2)$ where $\sigma^2$ is the population variance of the response
+
+
+\section*{2019-11-18}
+
+Studying for 701 midterm 2
+
+$$
+1 - \frac{ u }{ u+v } = \frac{ v }{ u+v }
+$$
+
+
+
+\begin{align*}
+	M_X(t) & = \int_{0} ^{\infty} e^{t x} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}} \cdot  x^{p/2-1}  e^{-x/2} dx\\
+		& = \int_{0} ^{\infty} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}}  x^{p/2-1} \cdot e^{-x/2 + tx} dx\\
+		& = \int_{0} ^{\infty} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}}  x^{p/2-1} \cdot e^{-x/2 (1-2t)} dx\\
+		& = (1-2t)^{-(p/2-1)}  \int_{0} ^{\infty} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}} \cdot x^{p/2-1}  e^{-x/2 (1-2t)}  (1-2t)^{p/2-1} dx\\
+		& = (1-2t)^{-(p/2-1)}  \int_{0} ^{\infty} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}} \cdot (x (1-2t))^{p/2-1}  e^{-x/2 (1-2t)}  dx\\ \\
+		u & = x(1-2t) \\
+		du & = (1-2t) dx \\ \\
+		& = (1-2t)^{-(p/2-1)}  \int_{0} ^{\infty} \frac{ 1 }{ \Gamma(p/2) 2^{p/2}} \cdot (u)^{p/2-1}  e^{-u/2 } \frac{ 1 }{ 1-2t }  du\\ 
+		& = \frac{ (1-2t)^{-p/2 + 1} }{ 1-2t } \cdot 1 \\
+		& = (1-2t)^{-p/2}
+\end{align*}
+
+
+
+
+\section*{2019-11-19}
+Clinical trials homework 5
+
+$$
+1-m(x)    \hat{S}(t)
+$$
+
+
+
+\section*{2019-12-06}
+dots
+
+$\dots - - - - - \hdots - - - - - \cdots$
+
+
+\section*{2019-12-07}
+ST703 final cheat sheet
+
+\begin{table}[H]
+\begin{tabular}{c  c c }
+	Source & df & SS \\\hline
+	A & $a - 1$ & $ \sum_{i} \sum_{j} \sum_{k} (\overline{ y }_{i++} - \overline{ y }_{+++})^2$ \\ 
+	B & $b-1$ & $\sum_i \sum_j \sum_k (\overline{ y }_{+j+} - \overline{ y }_{+++})^2$ \\
+	AB & $(a-1)(b-1)$ & $\sum_i \sum_j \sum_k (\overline{ y }_{ij+} - \overline{ y }_{i++}  - \overline{ y }_{+j+} + \overline{ y }_{+++}  )^2$\\
+	Error & $N - ab$ & $ \sum_{i} \sum_{j} \sum_{k} (y_{ijk} - \overline{ y }_{ij+})^2$ \\
+	Total & $N-1$ & $ \sum_{i} \sum_{j} \sum_{k} (y_{ijk} - \overline{ y }_{+++})^2$
+\end{tabular}
+\end{table}
+
+
+$$
+\frac{ 1 }{ 2 } [1,1, -1, -1]
+$$
+
+$$
+\frac{ 1 }{ 2 } [1, -1, 1, -1]
+$$
+
+
+$$
+[1, 0, -1, 0]
+$$
+
+
+$$
+[0, 1, 0, -1]
+$$
+
+
+$$
+[1, -1, 0, 0]
+$$
+
+
+$$
+[0, 0, 1, -1]
+$$
+
+
+$$
+[1, -1, -1, 1]
+$$
+
+
+
+
+$\sigma_T$ accounts for variability among treatment effects; this component contributes to the variance of the observed response because the observed response depends on the effect of a randomly selected treatment
+
+
+$\sigma$ accounts for the variability of the replicate measurements for the same treatment 
+
+
+
+\begin{table}[H]
+	\begin{tabular}{r l }
+	$E(Y_{ij}) $& = $\mu $\\
+	$Var(Y_{ij}) $& = $\sigma^2_T + \sigma^2 $\\
+	$Cov(Y_{ij}, Cov(Y_{il}))$ &$ = Cov(T_i + E_{ij}, T_i + E_{il}) = \sigma_T^2 \text{ for} j \neq l $\\
+	$Cov(Y_{ij}, Y_{kl}) $& = $0 \text{ for } i \neq k $
+	\end{tabular}
+\end{table}
+
+
+$$
+\sigma^2_T = 0
+$$
+
+
+if $SE = \sqrt{ c_1 MS_1 + \dots +  c_k MS_k }$ then
+
+
+
+\begin{table}[H]
+	\begin{tabular}{r l }
+		$E(Y_{ijk}) $& = $0$\\
+		$Var(Y_{ijk}) $& = $\sigma^2_A + \sigma^2_B + \sigma^2_{AB} + \sigma^2 $\\
+		$Cov(Y_{ijk}, Y_{ijl})$ &$ = \sigma_A^2 + \sigma_B^2 + \sigma_{AB}^2 $\\
+		$Cov(Y_{ijk}, Y_{iml}) $& $= \sigma_A^2 $ \\
+		$Cov(Y_{ijk}, Y_{qjl})$ & $ = \sigma_B^2$
+	\end{tabular}
+\end{table}
+
+
+
+
+\begin{table}[H]
+	\begin{tabular}{r l }
+		$E(Y_{ijk}) $& = $\mu +  \alpha_i$\\
+		$Var(Y_{ijk}) $& = $\sigma^2_B + \sigma^2_{\alpha B} + \sigma^2 $\\
+		$Cov(Y_{ijk}, Y_{ijl})$ & $= \sigma_B^2 + \sigma_{\alpha B}^2 $ for $k \neq l$\\
+		$Cov(Y_{ijk}, Y_{iml}) $& $= 0$ for $j \neq m$ \\
+		$Cov(Y_{ijk}, Y_{qjl})$ & $ = \sigma_B^2$ for $ i \neq q$
+	\end{tabular}
+\end{table}
+
+
+if assuming $b_i = b$ and $n_{ij} =n$, $ DF B(A) = a(b-1) $ and $DF E = nab - ab$
+
+
+
+\begin{table}[H]
+	\begin{tabular}{r l }
+		$E(Y_{ijk}) $& = $\mu $\\
+		$Var(Y_{ijk}) $& = $\sigma^2_A + \sigma^2_{B(A)} + \sigma^2 $\\
+		$Cov(Y_{ijk}, Y_{ijl})$ & $= \sigma_A^2 + \sigma^2_{B(A)}$ for $k \neq l$\\
+		$Cov(Y_{ijk}, Y_{iml}) $& $= \sigma_A^2$ for $j \neq m$ \\
+		$Cov(Y_{ijk}, Y_{qjl})$ & $ = 0$ for $ i \neq q$
+	\end{tabular}
+\end{table}
+
+
+
+\begin{table}[H]
+	\begin{tabular}{r l }
+		$E(Y_{ijk}) $& = $\mu + \alpha_i $\\
+		$Var(Y_{ijk}) $& = $ \sigma^2_{B(A)} + \sigma^2 $\\
+		$Cov(Y_{ijk}, Y_{ijl})$ & $=  \sigma^2_{B(A)}$ for $k \neq l$\\
+		$Cov(Y_{ijk}, Y_{iml}) $& $= 0$ for $j \neq m$ \\
+		$Cov(Y_{ijk}, Y_{qjl})$ & $ = 0$ for $ i \neq q$
+	\end{tabular}
+\end{table}
+
+\section*{2019-12-08}
+ST520 final cheat sheet
+
+
+$$
+T_n = \frac{ \overline{ Y }_1  - \overline{ Y }_2  }{ \sqrt{ \frac{ \sigma_1 }{ n_1 }   + \frac{ \sigma_2 }{ n_2 }  } }
+$$
+
+$$
+\phi(n, \Delta_A, \theta) = \frac{ \Delta_A}{ \sqrt{ \frac{ \sigma_1 }{ n_1 }   + \frac{ \sigma_2 }{ n_2 }  } }
+$$
+
+
+
+$$
+SE\Big[ KM(t) \Big] = KM(t) \Bigg[ \sum_{ death times \ u \leq t} \dfrac{ d(u) }{ n(u)(n(u) - d(u)) }  \Bigg]^{1/2}
+$$
+
+Notice that $\lambda_1(t) \leq \lambda_0(t) \Rightarrow S_1(t) > S_0(t)$
+
+
+Compare $T_n$ to $\mathcal{Z}_{\alpha}$
+
+
+
+$$
+b_j = c(\alpha, K, \Phi) \times j^{(\Phi - 0.5)}
+$$
+
+
+
+\begin{align*}
+& \Phi = 0  : \text{ O'Brien Fleming} \\
+ & \Phi = 0.5 :  \text{ Pocock}
+\end{align*}
+
+
+$$
+E_{\Delta^\star}(V_k) = \sum_{j=1}^k j \cdot P_{\Delta^\star}( |T(t_1) | < b_1 \land \dots \land |T(T_{j-1}) | < b_{j-1} \land |T(T_j) | > b_j)
+$$
+
+$$
+AI = \frac{ IF(\alpha, \beta, K, \Phi) }{ K } \cdot I^{FS} \cdot E_{\Delta^
+\star}(V)
+$$
+
+\noindent
+$\delta_i$ unknown b/c inclusion and exclusion principles and whether or not the patient wants to be in the study So sampling is unknown. Thus, this is a biased sample of the target population
+
+
+\section*{2019-12-10}
+ST701 Final Exam cheat sheet
+
+Convergence in distribution
+
+$X_n \stackrel{d}{\rightarrow} X$ if $F_{X_n}(x) \rightarrow F_X(x)$ for all $x$ such that $F_X$ is continuous
+
+If $c$ is a constant $ X_n \stackrel{d}{\rightarrow} c \Leftrightarrow X_n \stackrel{p}{\rightarrow} c $
+
+
+$$
+M_{X_n}(t) \rightarrow M_X(t) \Rightarrow X_n \stackrel{d}{\rightarrow} X
+$$
+
+
+
+If $X_n \stackrel{d}{\rightarrow}X$ and $Y_n \stackrel{p}{\rightarrow}c$
+
+\begin{align*}
+aX_n + bY_n & \stackrel{d}{\rightarrow} aX + bc \\
+X_n Y_n & \stackrel{d}{\rightarrow} cX \\
+X_n / Y_n & \stackrel{d}{\rightarrow} X / c \ (c \neq 0)
+\end{align*}
+
+
+
+\begin{align*}
+X_N \stackrel{as}{\rightarrow} X & \Rightarrow X_n \stackrel{p}{\rightarrow} X \\
+X_N \stackrel{L_2}{\rightarrow} X & \Rightarrow X_n \stackrel{p}{\rightarrow} X \\
+X_N \stackrel{d}{\rightarrow} X & \Rightarrow X_n \stackrel{d}{\rightarrow} X \\
+X_N \stackrel{d}{\rightarrow}c & \Leftrightarrow X_n \stackrel{p}{\rightarrow} c
+\end{align*}
+
+
+
+
+CLT
+
+\noindent
+Let $X_i$ iid RV with $E(X_i) = \mu$ and $V(X_i) = \sigma^2$ and $\overline{ X } = 1/n \sum X_i$.
+
+$$
+\frac{ \sqrt{ n} (\overline{ X } - \mu) } { \sigma } \stackrel{d}{\rightarrow} N(0,1)
+$$
+
+
+
+
+\section*{2019-12-11}
+
+520 Final
+
+$$
+\overline{ \pi } = \frac{ \pi_1 \cdot n_1 }{ n_1 + n_2 } + \frac{ \pi_2 \cdot n_2  }{ n_1 + n_2 }
+$$
+
+
+\section*{2012-12-12}
+
+703 Final
+
+$$
+\mathcal{Z}_{\alpha/2} \cdot SE(\theta) \leq \frac{ length}{ 2 }
+$$
+
+
+
+$$
+\mathcal{Z}_{\alpha/2} \cdot \frac{ \sigma }{ \sqrt{ {n} } } \leq \frac{ length}{ 2 }
+$$
+
+
+$$
+\mathcal{Z}_{\alpha/2} \cdot \sqrt{ \frac{ p(1-p) }{ n }} \leq \frac{ 2\cdot 0.02 }{ 2 }
+$$
+
+
+
+\end{document}
+
