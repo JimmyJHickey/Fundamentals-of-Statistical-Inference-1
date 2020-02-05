@@ -1,7 +1,7 @@
 ###
 # Jimmy Hickey
 # 2020-02-04
-# Check all subdirectories and check for any uncommited git changes
+# Check all subdirectories for any uncommited and unpushed git changes
 ###
 
 
