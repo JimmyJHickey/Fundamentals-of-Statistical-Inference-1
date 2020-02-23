@@ -9,9 +9,12 @@ shopt -s nullglob
 subdirs=(*/)
 shopt -u nullglob
 
-declare -a uncommitted_dirs
-declare -a unpushed_dirs
+declare -a uncommitted_dirs=()
+declare -a unpushed_dirs=()
 
+# because my array lengths weren't changing for some reason
+ANY_UNCOMMITTED=0
+ANY_UNPUSHED=0
 
 for idir in "${subdirs[@]}"; do
 	cd ${idir}
@@ -21,14 +24,16 @@ for idir in "${subdirs[@]}"; do
 		uncommitted="$(git status --porcelain)"
 
 		if [[ "${uncommitted}" ]]; then
-			uncommitted_dirs+=( "${idir}" )
+			uncommitted_dirs+=("${idir}")
+			ANY_UNCOMMITTED=1
 		fi
 
 
 		unpushed="$(git log origin/master..HEAD)"
 		
 		if [[ "${unpushed}" ]]; then
-			unpushed_dirs+=( "${idir}" )
+			unpushed_dirs+=("${idir}")
+			ANY_UNPUSHED=1
 		fi
 	fi
 
@@ -36,8 +41,14 @@ for idir in "${subdirs[@]}"; do
 	cd ..
 done
 
-echo "DIRECTORIES WITH UNCOMMITED CHANGES"
-printf '%s\n' "${uncommitted_dirs[@]}"
 
-echo "DIRECTORIES WITH UNPUSHED CHANGES"
-printf '%s\n' "${unpushed_dirs[@]}"
+if [ "${ANY_UNCOMMITTED}" -eq 1 ]; then
+	echo "DIRECTORIES WITH UNCOMMITED CHANGES"
+	printf '%s\n' "${uncommitted_dirs[@]}"
+fi
+
+
+if [ "${ANY_UNPUSHED}" -eq 1 ]; then
+	echo "DIRECTORIES WITH UNPUSHED CHANGES"
+	printf '%s\n' "${unpushed_dirs[@]}"
+fi
