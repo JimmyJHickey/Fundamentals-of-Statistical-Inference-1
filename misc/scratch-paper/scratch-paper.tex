@@ -1,6 +1,9 @@
 
 \documentclass[]{article}
 
+% for code
+\usepackage{listings}
+
 \usepackage{amstext}
 
 % for align*
@@ -493,6 +496,18 @@ $$
 \mathcal{Z}_{\alpha/2} \cdot \sqrt{ \frac{ p(1-p) }{ n }} \leq \frac{ 2\cdot 0.02 }{ 2 }
 $$
 
+
+\section*{2020-03-04}
+
+pfrac command \\
+
+\lstinline|\newcommand{\pfrac}[2]{\frac{ \partial  #1 }{\partial #2 }}|
+
+\newcommand{\pfrac}[2]{\frac{ \partial  #1 }{\partial #2 }}
+
+$$
+\pfrac{^2 \ell}{ \theta^2}
+$$
 
 
 \end{document}
