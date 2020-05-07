@@ -165,7 +165,6 @@ F
 
 
 ## d
-c = c(1,1,1,1)
 
 zhat = (t(y) %*% X %*% c) / (t(c) %*% t(X) %*% X %*% c)
 zhat
@@ -174,10 +173,18 @@ zhat
 
 
 ## e
+K = 
+  matrix(c(
+    1, 1, 1,
+    -1, 0, 0,
+    0, -1, 0,
+    0, 0, -1
+  ), byrow=T, ncol=3)
+c = c(1,1,1,1)
 
-theta_hat= solve(Kt %*% t(Kt)) %*%
- (Kt %*% t(X) %*% y - 
-   Kt %*% t(X) %*% X %*% c)
+theta_hat= solve(t(K) %*% K) %*%
+ (t(K) %*% t(X) %*% y - 
+   t(K) %*% t(X) %*% X %*% c)
 
 theta_hat
 
