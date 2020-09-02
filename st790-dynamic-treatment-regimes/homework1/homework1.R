@@ -5,6 +5,7 @@
 # Data analysis homework 1
 ###
 library(modelObj)
+library(DynTxRegime)
 
 # 1
 
@@ -44,3 +45,31 @@ delta_DR_se(moOR = lm, moPS = propensity, data = data, y = y)
 
 
 # 2
+
+## a
+regime = as.integer({data$chol0 > 280})
+
+
+### i. outcome regression
+value_OR_se(moOR = lm, data = data, y = y, regime = regime, txName = 'A')
+
+
+### ii. IPW
+
+value_IPW_se(moPS = propensity, data = data,  y = y, regime = regime, txName = 'A')
+
+### iii. alternative IPW
+value_AIPW_se(moPS = propensity, moOR = lm, data = data, y = y, regime =regime, txName = 'A')
+
+
+
+### iv. optimal AIPW
+qLearn(moMain = lm, 
+       moCont = lm,
+       data = data, 
+       response = y, 
+       txName = 'A', 
+       iter = 0L,
+       verbose = FALSE)
+
+## b
