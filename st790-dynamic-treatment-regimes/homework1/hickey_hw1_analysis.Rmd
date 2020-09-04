@@ -1,71 +1,97 @@
-###
-# Jimmy Hickey
-# 2020-08-24
-# Introduction to Dynamic Treatment Regimes
-# Data analysis homework 1
-###
+---
+title: "Homework 1 Data Analysis"
+author: "Jimmy Hickey"
+date: "2020/09/03"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r}
 library(modelObj)
 library(DynTxRegime)
 library(ggplot2)
+source("estimators.R")
+source("value_estimators.R")
+
+```
 
 # 1
 
+```{r}
 data <- read.csv(file = file.choose(), header = TRUE, sep = ",")
 data$A= data$trt
 
 y = data$chol0 - data$chol6
-
+```
 
 ## i. naive
+```{r}
 delta_N_se(y = y, A = data$A)
-
+```
 
 ## ii. outcome regression
+
+```{r}
 lm = buildModelObj(model = ~A + exercise + wt + smoke + trig0 + age + gender +
                      A:exercise + A:wt + A:smoke + A:trig0 + A:age + A:gender, 
                    solver.method = "lm", 
                    predict.method = "predict.lm", 
                    predict.args = list("type"="response"))
 delta_OR_se(moOR = lm, data = data, y = y)
+```
+
 
 ## iii. propensity score stratification
+```{r}
 propensity <- modelObj::buildModelObj(model = ~ age + wt + gender + exercise + smoke + trig0 + chol0,
                               solver.method = 'glm',
                               solver.args = list(family='binomial'),
                               predict.method = 'predict.glm',
                               predict.args = list(type='response'))
 delta_S_se(moPS = propensity, data = data, y = y, K = 5)
-
+```
 
 ## iv. IPW
-delta_IPW_se(moPS = propensity, data = data, y = y)
 
+```{r}
+delta_IPW_se(moPS = propensity, data = data, y = y)
+```
 
 ## v. double robust AIPW
+```{r}
 delta_DR_se(moOR = lm, moPS = propensity, data = data, y = y)
-
+```
 
 
 # 2
 
 ## a
+```{r}
 regime = as.integer({data$chol0 > 280})
-
+```
 
 ### i. outcome regression
+```{r}
 value_OR_se(moOR = lm, data = data, y = y, regime = regime, txName = 'A')
-
+```
 
 ### ii. IPW
-
+```{r}
 value_IPW_se(moPS = propensity, data = data,  y = y, regime = regime, txName = 'A')
+```
 
 ### iii. alternative IPW
+```{r}
 value_AIPW_se(moPS = propensity, moOR = lm, data = data, y = y, regime =regime, txName = 'A')
-
+```
 
 
 ### iv. optimal AIPW
+```{r}
 qLearn(moMain = lm, 
        moCont = lm,
        data = data, 
@@ -73,13 +99,13 @@ qLearn(moMain = lm,
        txName = 'A', 
        iter = 0L,
        verbose = FALSE)
+```
 
 ## b
-
+```{r}
 w = seq(110,284, length.out = 100)
 
 regimes <- sapply(X = w, FUN = function(x,y){{y > x}*1L}, y = data$chol0)
-
 
 ### i. Outcome regression
 lm <- buildModelObj(model = ~A+age+wt+gender+exercise+smoke+trig0+
@@ -105,7 +131,7 @@ or_vals <- apply(X = regimes,
                                          txName = 'A')
                      return( "valueHat" = temp$valueHat)
                    },
-                   moOR = peter_model,
+                   moOR = lm,
                    data = data,
                    y = y)
 
@@ -139,7 +165,7 @@ aipw_vals <- apply(X = regimes,
            return( "valueHat" = temp$valueHat )
          },
          moPS = propensity,
-         moOR = peter_model,
+         moOR = lm,
          data = data,
          y = y)
 
@@ -157,4 +183,4 @@ ggplot(data = plot_data) +
   geom_vline(xintercept = max_w)+
   ylab("V(d)") + 
   xlab("weight") 
-  
+```  
