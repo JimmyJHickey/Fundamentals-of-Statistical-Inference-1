@@ -1,0 +1,178 @@
+---
+title: "Homework 2"
+author: "Jimmy Hickey"
+date: "9/3/2020"
+output: pdf_document
+---
+
+
+# 2.34
+
+## a.
+Recall that our MLEs are $\widehat \mu = 4395.147$ and $\widehat \sigma = 1882.499$. Then we can find our asymptotic covariance.
+
+
+\begin{align*}
+\text{AsyCov}(\widehat \mu, \widehat \sigma^2) & = \frac{ 1 }{n  }  I^{-1}(Y, \mu, \sigma^2) \\
+  & \approx \frac{1}{35  }  \widehat \sigma^2
+  \begin{bmatrix}
+  1 & -0.423 \\
+  -0.423 & 1.824
+  \end{bmatrix}^{-1} \\
+  & = \frac{  1}{ 35 } 1882.499^2 
+      \begin{bmatrix}
+       112264 & 26035 \\
+       26035 & 61548.4 \\
+      \end{bmatrix} \\
+  & = 1882.499^2 
+  \begin{bmatrix}
+  0.031679 & 0.00734662 \\
+  0.00734662 & 0.0173679
+  \end{bmatrix} \\
+  & = \begin{bmatrix}
+    112264 & 26035 \\
+    26035 & 61548.4
+  \end{bmatrix}
+\end{align*}
+
+
+## b & c
+
+$$
+\widehat Q = \widehat \sigma(-\log(-\log(0.993))) + \widehat \mu
+$$
+
+Notice that
+
+$$
+\begin{bmatrix}
+\widehat \mu \\
+\widehat \sigma
+\end{bmatrix} \sim
+N_2 \Big( 
+\begin{bmatrix}
+\mu \\
+\sigma
+\end{bmatrix},
+\sigma^2
+\begin{bmatrix}
+  0.031679 & 0.00734662 \\
+  0.00734662 & 0.0173679
+\end{bmatrix}
+\Big)
+$$
+\begin{align*}
+\widehat Q & = 
+\begin{bmatrix}
+1 & -\log(-\log(0.993))
+\end{bmatrix} 
+\begin{bmatrix}
+\widehat \mu \\
+\widehat \sigma
+\end{bmatrix} \\
+& \sim N \Big(\widehat\mu - \widehat \sigma (-\log(-\log(0.993))) ,
+\begin{bmatrix}
+1 & -\log(-\log(0.993))
+\end{bmatrix}
+\widehat \sigma^2
+\begin{bmatrix}
+  0.031679 & 0.00734662 \\
+  0.00734662 & 0.0173679
+\end{bmatrix}
+\begin{bmatrix}
+1 & -\log(-\log(0.993))
+\end{bmatrix} ^T
+\Big) \\
+& = N\Big( 4395.147 - 1882.499 (-\log(-\log(0.993))) , \\
+& \widehat \sigma^2 \left(
+\begin{array}{cc}
+ 1 & -\log (-\log (0.993)) \\
+\end{array}
+\right).\left(
+\begin{array}{cc}
+ 0.031679 & 0.00734662 \\
+ 0.00734662 & 0.0173679 \\
+\end{array}
+\right).\left(
+\begin{array}{cc}
+ 1 & -\log (-\log (0.993)) \\
+\end{array}
+\right)^T \Big) \\
+& = N(13729.2, 1883617)
+\end{align*}
+
+
+Since this is a normal distribution, the median is the mean.
+
+
+
+# 2.42
+
+```{r, warning=FALSE}
+set.seed(1978)
+
+mu = 1
+sigma = 1
+n = 100
+
+ndata = exp(rnorm(n, mu, sigma))
+
+
+nllik = function(theta,dta=ndata){
+  mu = theta[1]
+  sigma = theta[2]
+  lambda = theta[3]
+  n = length(dta)
+  
+  like =  (lambda - 1) * sum(log(dta)) - n/2 * log(2 * pi * sigma^2)
+  
+  if(lambda == 0)
+  {
+    like = like + -1 / (2 *sigma^2)*( (lambda == 0) * sum( (log(dta) - mu)^2  ))
+  }
+  else if(lambda != 0)
+  {
+    like = like + -1 / (2 *sigma^2)*sum( ((dta^lambda - 1)/lambda - mu)^2)
+  }
+  
+  return(-like) 
+
+}
+
+nllik(c(1,2,3), ndata)
+nllik(c(1,2,0), ndata)
+
+n_iter = 1000
+estimates = data.frame(mu=double(n_iter),
+                       sigma=double(n_iter),
+                       lambda=double(n_iter))
+
+
+for (i in 1:n_iter){
+  ndata = exp(rnorm(n, mu, sigma))
+  nlm_out <- nlm(nllik, c(2,2,2), dta=ndata)
+  estimates$mu[i] = nlm_out$estimate[1]
+  estimates$sigma[i] = nlm_out$estimate[2]
+  estimates$lambda[i] = nlm_out$estimate[3]
+}
+
+
+calculated_cov = cov(estimates)
+
+mu_hat_avg = mean(estimates$mu)
+sigma_hat_avg = mean(estimates$sigma)
+lambda_hat_avg = mean(estimates$lambda)
+  
+eta1 = (7 * sigma_hat_avg^2 + 2 * mu_hat_avg^2 + mu_hat_avg^4/sigma_hat_avg^2) / 6
+eta2 = (1  + mu_hat_avg^2 / sigma_hat_avg^2)
+  
+iinv_11 = eta1
+iinv_12 = mu_hat_avg * sigma_hat_avg * eta2 / 3
+iinv_13 = eta1 / 3
+iinv_21 = mu_hat_avg * sigma_hat_avg * eta2 / 3
+iinv_22 = sigma_hat_avg^2/2 + (2 * mu_hat_avg^2)/3 
+iinv_23 = (2 * mu_hat_avg) / (3 * sigma_hat_avg)
+iinv_31 = eta1 / 3
+iinv_32 = (2 * mu_hat_avg) / (3 * sigma_hat_avg)
+iinv_33 = 2 / (3 * sigma^2)
+```
