@@ -21,3 +21,10 @@ moCont <- buildModelObj(mode = ~x2+x3,
 qObj <- qLearn(moMain = moMain, moCont = moCont, iter = 0L,
                data = df, response = df$y, txName = 'A',
                verbose = TRUE)
+
+coef(qObj)
+
+fitObj <- fitObject(object = qObj)
+fitObj
+
+outcome(qObj)
