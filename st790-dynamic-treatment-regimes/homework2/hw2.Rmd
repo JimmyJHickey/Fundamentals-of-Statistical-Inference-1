@@ -1,0 +1,80 @@
+---
+title: "Data Analysis Homework 2"
+author: "Jimmy Hickey"
+date: "9/25/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1
+```{r}
+library(DynTxRegime)
+
+data <- read.csv(file =file.choose(), header = TRUE, sep = ",")
+data$A= data$trt
+
+y = data$chol0 - data$chol6
+
+lm = buildModelObj(model = ~A + exercise + wt + smoke + trig0 + age + gender +
+                     A:exercise + A:wt + A:smoke + A:trig0 + A:age + A:gender, 
+                   solver.method = "lm", 
+                   predict.method = "predict.lm", 
+                   predict.args = list("type"="response"))
+# adj R^2 = 0.889
+
+summary(fit(lm, data, y))
+```
+
+## a. regression-based estimator
+
+```{r}
+# From slide 35 of Halloway
+moMain <- buildModelObj(model = ~exercise + wt + smoke + trig0 + age + gender,
+        solver.method = 'lm',
+        predict.method = 'predict.lm')
+
+moCont <- buildModelObj(model = ~exercise + wt + smoke + trig0 + age + gender,
+        solver.method = 'lm',
+        predict.method = 'predict.lm')
+
+qObj <- qLearn(moMain = moMain, moCont = moCont, iter = 0L,
+          data = data, response = y, txName = 'A',
+          verbose = TRUE)
+
+
+coef(object = qObj)
+
+fitObj = fitObject(object = qObj)
+fitObj
+
+ot <- optTx(x = qObj)
+table(ot$optimalTx)
+table(ot$decisionFunc)
+estimator(x = qObj)
+```
+
+
+## b. restricted value search
+```{r}
+# slide 54 of Halloway
+regimes = function(eta1, data)
+{
+  d1 = {data$wt > eta1}
+  return(as.integer(x = d1))
+}
+```
+
+## c
+
+
+
+## d
+
+
+# 2
+
+
+# 3
