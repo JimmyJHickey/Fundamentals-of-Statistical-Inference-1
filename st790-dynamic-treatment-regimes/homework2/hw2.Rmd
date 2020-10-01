@@ -150,40 +150,43 @@ calc_betas = function(data, K){
   n = dim(data)[1]
   
   # LDL measurements 
-  L = data[,c(1,3,6,9,12)]
-  
-  # Side effect experienced
-  S = data[,c(4,7,10,13)]
+  L = cbind(data$L1, data$L2, data$L3, data$L4, data$Y)
   
   # Statin dose received
-  A = data[,c(2,5,8,11)]
+  A = cbind(data$A1, data$A2, data$A3, data$A4)
+  
+  # Side effects
+  S = cbind(rep(0,n), data$S2, data$S3, data$S4, data$S5)
   
   # Y outcome vector
-  # shoutout to Samsul for helping me build Y
-  Y = as.numeric(t(cbind(L[,1],L[,2:5]-L[,1:4])))
+  Y = matrix(0, nrow = (K+1) * n, ncol = 1)
   
   # X design matrix
-  X = NULL
+  X = matrix(0, nrow = (K+1) * n, ncol = 7)
   
   for(i in 1:n){
-    X = rbind(X, 
-              c(1, rep(0,6)))
+    ind = (i-1) * (K+1)
+    
+    X[ind, ] = c(1, rep(0,6))
+    Y[ind, ] = L[i, 1]
     
     for(k in 2:(K+1)){
-      X = rbind(X,
-                c(0,
+      Y[ind + k] = L[i,k] - L[i,k-1]
+      X[ind + k, ] = c(0,
                   1 - S[i, k-1],
                   A[i, k-1]*(1-S[i,k-1]),
                   L[i,k-1]*(1-S[i,k-1]),
                   A[i,k-1]*L[i,k-1]*(1-S[i,k-1]),
                   S[i,k-1],
-                  S[i,k-1]*A[i,k-1]))
+                  S[i,k-1]*A[i,k-1])
     }
   }
   
+  df = data.frame(cbind(Y,X))
+  names(df) = c("y","beta1","beta2","beta3","beta4","beta5","beta6","beta7")
   # fit linear model 
   # -1 removes intercept
-  lm = lm(Y ~ -1 + X)
+  lm = lm(y ~ -1 + beta1 + beta2 + beta3 + beta4 + beta5 + beta6 + beta7, data = df)
   return(lm)  
 }
 
@@ -215,35 +218,37 @@ calc_psis = function(data, K){
   n = dim(data)[1]
 
   # LDL measurements 
-  L = data[,c(1,3,6,9,12)]
-  
-  # Side effect experienced
-  S = data[,c(4,7,10,13)]
+  L = cbind(data$L1, data$L2, data$L3, data$L4, data$Y)
   
   # Statin dose received
-  A = data[,c(2,5,8,11)]
+  A = cbind(data$A1, data$A2, data$A3, data$A4)
+  
+  # Side effects
+  S = cbind(rep(0,n), data$S2, data$S3, data$S4, data$S5)
   
   # Y outcome vector
   # take off side effects at 12 months
-  # again, thanks Samsul!
-  Ylogis = as.numeric(as.matrix(S[, -4]))
+  Ylogis = matrix(0, nrow = (K-1)*n, ncol = 1)
   
   # X design matrix for logistic regression
-  Xlogis = NULL
-  
+  Xlogis = matrix(0, nrow = (K-1) * n, ncol = K)
+
   for(i in 1:n){
+    ind = (i-1) * (K-1)
+    
     for(k in 2:K){
       abark = sum(A[i, 1:(k-1)])
-      Xlogis = rbind(Xlogis,
-                     c(abark,
+      Xlogis[ind + (k-1), ] =  c(1, abark,
                        abark * L[i, k-1],
-                       S[i, k-1] * A[i, k-1]
-                       ))
+                       S[i, k-1] * A[i, k-1])
+      Ylogis[i+(k-1)] = S[i,k] 
     }
     
   }
+  df = data.frame(cbind(Ylogis, Xlogis))
+  names(df) = c("Y", "psi1", "psi2", "psi3", "psi4")
   
-  psifit = glm(Ylogis ~ Xlogis, family = binomial)
+  psifit = glm(Y ~-1+ psi1 + psi2 + psi3 + psi4, data = df, family = binomial)
   psis = coef(psifit)
   return(psis)
 }
@@ -267,13 +272,12 @@ logistic_func = function(x){
 
 gcomp = function(data, regime, K, M){
   bfit = calc_betas(data, K)
-  betas = bfit$coefficients
+  betas = coef(bfit)
   sigma = summary(bfit)$sigma
 
   psis = calc_psis(data, K)
   
-  # it would be more efficient to make this of length M, but that isn't working
-  y = NULL
+   y = rep(0, M)
   
   for(r in 1:M){
     L = rep(0, K+1)
@@ -283,36 +287,36 @@ gcomp = function(data, regime, K, M){
     # random draw for L1
     L[1] = rnorm(n=1, mean=betas[1], sd=sigma)
     
-    for(k in 2:K+1){
+    for(k in 2:(K+1)){
       # dose
       A[k-1] = regime(L, S, A, k-1)
       
       # Equation 3
-      mu = L[k-1] + (betas[2] + betas[3]*A[k-1] + betas[4]*L[k-1] + 
+      mu =  (betas[2] + betas[3]*A[k-1] + betas[4]*L[k-1] + 
              betas[5]*A[k-1]*L[k-1]) * (1-S[k-1]) +
              (betas[6] + betas[7]*A[k-1])*S[k-1]
-      L[k] = rnorm(n=1, mean=mu, sd=sigma)
+
+      L[k] = L[k-1] + rnorm(n=1, mean=mu, sd=sigma)
       
       # Equation 4
-      Acum = sum(A[1:k-1])
+      Acum = sum(A[1:(k-1)])
       prob = logistic_func( psis[1] + psis[2] * Acum +
                      psis[3] * Acum * L[k-1] + psis[4] * S[k-1] * A[k-1])
       S[k] = rbinom(n=1, size=1, prob=prob)
     }
-
-    y = rbind(y,L[K+1])
+    y[r] = L[K+1]
   }
   
   return(mean(y))
 }
 
 bootstrap_gcomp = function(data, regime, K, M, rep){
-  out = NULL
   nrow = dim(data[1])
-  
+  out = rep(0, rep)
+
   for(i in 1:rep){
     sample = data[sample(nrow, replace=TRUE),]
-    out = rbind(out, gcomp(data, regime, K, M))
+    out[i] = gcomp(data, regime, K, M)
   }
   
   return(sd(out))
@@ -337,7 +341,7 @@ stat_reg4 = function(L, S, A, dk){
 }
 
 stat_reg5 = function(L, S, A, dk){
-  return(dk %in% c(1, 2, 3, 4) )
+  return(1)
 }
 
 stat_reg6 = function(L, S, A, dk){
@@ -354,49 +358,49 @@ stat_reg8 = function(L, S, A, dk){
 
 # regime 1
 est1 = gcomp(data = ldl, regime = stat_reg1, K = 4, M = 1000)
-sd1 = bootstrap_gcomp(data = ldl, regime = stat_reg1, K = 4, M = 1000, rep = 10)
+sd1 = bootstrap_gcomp(data = ldl, regime = stat_reg1, K = 4, M = 1000, rep = 100)
 
 cat("================\nregime 1\nestimate:\t", est1, "\nstderr:\t\t", sd1, "\n================")
 
 # regime 2
 est2 = gcomp(data = ldl, regime = stat_reg2, K = 4, M = 1000)
-sd2 = bootstrap_gcomp(data = ldl, regime = stat_reg2, K = 4, M = 1000, rep = 10)
+sd2 = bootstrap_gcomp(data = ldl, regime = stat_reg2, K = 4, M = 1000, rep = 100)
 
 cat("================\nregime 2\nestimate:\t", est2, "\nstderr:\t\t", sd2, "\n================")
 
 # regime 3
 est3 = gcomp(data = ldl, regime = stat_reg3, K = 4, M = 1000)
-sd3 = bootstrap_gcomp(data = ldl, regime = stat_reg3, K = 4, M = 1000, rep = 10)
+sd3 = bootstrap_gcomp(data = ldl, regime = stat_reg3, K = 4, M = 1000, rep = 100)
 
 cat("================\nregime 3\nestimate:\t", est3, "\nstderr:\t\t", sd3, "\n================")
 
 # regime 4
 est4 = gcomp(data = ldl, regime = stat_reg4, K = 4, M = 1000)
-sd4 = bootstrap_gcomp(data = ldl, regime = stat_reg4, K = 4, M = 1000, rep = 10)
+sd4 = bootstrap_gcomp(data = ldl, regime = stat_reg4, K = 4, M = 1000, rep = 100)
 
 cat("================\nregime 4\nestimate:\t", est4, "\nstderr:\t\t", sd4, "\n================")
 
 # regime 5
 est5 = gcomp(data = ldl, regime = stat_reg5, K = 4, M = 1000)
-sd5 = bootstrap_gcomp(data = ldl, regime = stat_reg5, K = 4, M = 1000, rep = 10)
+sd5 = bootstrap_gcomp(data = ldl, regime = stat_reg5, K = 4, M = 1000, rep = 100)
 
 cat("================\nregime 5\nestimate:\t", est5, "\nstderr:\t\t", sd5, "\n================")
 
 # regime 6
 est6 = gcomp(data = ldl, regime = stat_reg6, K = 4, M = 1000)
-sd6 = bootstrap_gcomp(data = ldl, regime = stat_reg6, K = 4, M = 1000, rep = 10)
+sd6 = bootstrap_gcomp(data = ldl, regime = stat_reg6, K = 4, M = 1000, rep = 100)
 
 cat("================\nregime 6\nestimate:\t", est6, "\nstderr:\t\t", sd6, "\n================")
 
 # regime 7
 est7 = gcomp(data = ldl, regime = stat_reg7, K = 4, M = 1000)
-sd7 = bootstrap_gcomp(data = ldl, regime = stat_reg7, K = 4, M = 1000, rep = 10)
+sd7 = bootstrap_gcomp(data = ldl, regime = stat_reg7, K = 4, M = 1000, rep = 100)
 
 cat("================\nregime 7\nestimate:\t", est7, "\nstderr:\t\t", sd7, "\n================")
 
 # regime 8
 est8 = gcomp(data = ldl, regime = stat_reg8, K = 4, M = 1000)
-sd8 = bootstrap_gcomp(data = ldl, regime = stat_reg8, K = 4, M = 1000, rep = 10)
+sd8 = bootstrap_gcomp(data = ldl, regime = stat_reg8, K = 4, M = 1000, rep = 100)
 
 cat("================\nregime 8\nestimate:\t", est8, "\nstderr:\t\t", sd8, "\n================")
 
@@ -411,7 +415,7 @@ regime_d1 = function(L, S, A, dk){
 }
 
 estd1 = gcomp(data = ldl, regime = regime_d1, K = 4, M = 1000)
-sdd1 = bootstrap_gcomp(data = ldl, regime = regime_d1, K = 4, M = 1000, rep = 10)
+sdd1 = bootstrap_gcomp(data = ldl, regime = regime_d1, K = 4, M = 1000, rep = 100)
 
 cat("================\nregime d1\nestimate:\t", estd1, "\nstderr:\t\t", sdd1, "\n================")
 ```
@@ -424,7 +428,7 @@ regime_d2 = function(L, S, A, dk){
 }
 
 estd2 = gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000)
-sdd2 = bootstrap_gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000, rep = 10)
+sdd2 = bootstrap_gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000, rep = 100)
 
 cat("================\nregime d2\nestimate:\t", estd2, "\nstderr:\t\t", sdd2, "\n================")
 ```
@@ -441,7 +445,7 @@ for(i in 1:length(etas)){
   }
   
   estd2 = gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000)
-  sdd2 = bootstrap_gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000, rep = 10)
+  sdd2 = bootstrap_gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000, rep = 100)
   
   cat("================\nregime eta=", eta_i,"\nestimate:\t", estd2, "\nstderr:\t\t", sdd2, "\n================")
   
@@ -450,9 +454,11 @@ for(i in 1:length(etas)){
 ```
 
 ## f
-There are some clear errors in my calculations. Most noticeably, my estimates are negative! Further, I had to go from 100 bootstrap reptitions (which took about an hour bootstrap call) to 10 reptitions (which took a minute or two each). 
+Notice that for the static regimes, the value is higher for regimes with fewer high doses. Regime 5 (all high dose) has the lowest value.
 
-Based on my testing, I think that the inefficiencies are coming from the creation of my design matrices. I think allocating a fixed amount of memory for them at the beginning would improve performance. My current solution is to start them as NULL and add rows along the way
+In part (d), the second rule has a higher value than the first. This shows that it may be a better idea to stop high doses to anyone that has EVER shown a side effect, rather than just people that are currently experiencing one.
+
+In part (e), all the regimes have similar value, regardless of the eta value.
 
 
 # 3
@@ -627,7 +633,7 @@ ipw_sdd1 = bootstrap_ipw(data = ldl, regime = regime_d2, K = 4,rep = 100)
 cat("================\nregime d1\nipw_estimate:\t", ipw_estd1, "\nstderr:\t\t", ipw_sdd1, "\n================")
 
 ipw_estd2 = calc_ipw(data = ldl, regime = regime_d2, K = 4)
-ipw_sdd2 = bootstrap_ipw(data = ldl, regime = regime_d2, K = 4, rep = 10)
+ipw_sdd2 = bootstrap_ipw(data = ldl, regime = regime_d2, K = 4, rep = 100)
 
 cat("================\nregime d2\nipw_estimate:\t", ipw_estd2, "\nstderr:\t\t", ipw_sdd2, "\n================")
 
@@ -762,7 +768,7 @@ ipw_star_sdd1 = bootstrap_ipw_star(data = ldl, regime = regime_d2, K = 4,rep = 1
 cat("================\nregime d1\nipw_star_estimate:\t", ipw_star_estd1, "\nstderr:\t\t\t", ipw_star_sdd1, "\n================")
 
 ipw_star_estd2 = calc_ipw_star(data = ldl, regime = regime_d2, K = 4)
-ipw_star_sdd2 = bootstrap_ipw_star(data = ldl, regime = regime_d2, K = 4, rep = 10)
+ipw_star_sdd2 = bootstrap_ipw_star(data = ldl, regime = regime_d2, K = 4, rep = 100)
 
 cat("================\nregime d2\nipw_star_estimate:\t", ipw_star_estd2, "\nstderr:\t\t\t", ipw_star_sdd2, "\n================")
 
@@ -786,4 +792,9 @@ for(i in 1:length(etas)){
 
 
 ## d
-The results for (b) and (c) are very similar to one another in both estimates and standard errors. It is hard to compare them to the g-computation algorithm while I still have bugs.
+The results for (b) and (c) are very similar to one another in both estimates and standard errors. These similarities held across all kinda of regimes. They show the same value pattern across static regimes as g-computation. 
+
+They had less disparity in value when between regimes d1 and d2.
+
+They also had similar (well, exactly the same) values across all eta choices.
+
