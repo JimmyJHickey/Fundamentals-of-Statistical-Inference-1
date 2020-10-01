@@ -68,16 +68,46 @@ regimes = function(eta1, data)
   return(as.integer(x = d1))
 }
 
-moPropen <- buildModelObj(model = ~ 1,
-              solver.method = 'glm',
-              solver.args = list(family = 'binomial'),
-              predict.method = 'predict.glm',
-              predict.args = list(type = 'response'))
+# propensity model from hw1
+propensity <- modelObj::buildModelObj(model = ~ age + wt + gender + exercise + smoke + trig0 + chol0,
+    solver.method = 'glm',
+    solver.args = list(family='binomial'),
+    predict.method = 'predict.glm',
+    predict.args = list(type='response'))
+
+# optimal seq from slide 56 of Halloway
+# notice we only need a propensity model for equation 3.42
+vsObj <- optimalSeq(moPropen = propensity,
+            moMain = NULL, moCont = NULL, iter = 0L,
+            data = data, response = y, txName = 'A',
+            regimes = regimes,
+            Domains = matrix(data = c(110, 290), ncol = 2L),
+            starting.values = c(0,0), pop.size = 1000,
+            verbose = TRUE)
+
+regimeCoef(vsObj)
+estimator(vsObj)
 ```
+
+Notice that our optimal eta is $\eta = 157.8948$. This agrees with the graph that we got from homework 1 question 2 b!
 
 ## c
 
+```{r}
+# notice that the difference here is we need our moMain and moCont are no longer null
+vsObj2 <- optimalSeq(moPropen = propensity,
+            moMain = moMain, moCont = moCont, iter = 0L,
+            data = data, response = y, txName = 'A',
+            regimes = regimes,
+            Domains = matrix(data = c(110, 290), ncol = 2L),
+            starting.values = c(0,0), pop.size = 1000,
+            verbose = TRUE)
 
+regimeCoef(vsObj2)
+estimator(vsObj2)
+```
+
+Notice that our optimal eta is $\eta = 158.5162$. This is similar to the estimate in (b) and also with the graph from homework 1.
 
 ## d
 ```{r}
@@ -88,7 +118,7 @@ moClass <- buildModelObj(model = ~exercise + wt + smoke + trig0 + age + gender,
   predict.args = list(type = "class"))
 
 
-clObj <- optimalClass(moPropen = moPropen,
+clObj <- optimalClass(moPropen = propensity,
             moMain = moMain, moCont = moCont, iter = 0L,
             moClass = moClass,
             data = data, response = y, txName = 'A',
@@ -420,6 +450,10 @@ for(i in 1:length(etas)){
 ```
 
 ## f
+There are some clear errors in my calculations. Most noticeably, my estimates are negative! Further, I had to go from 100 bootstrap reptitions (which took about an hour bootstrap call) to 10 reptitions (which took a minute or two each). 
+
+Based on my testing, I think that the inefficiencies are coming from the creation of my design matrices. I think allocating a fixed amount of memory for them at the beginning would improve performance. My current solution is to start them as NULL and add rows along the way
+
 
 # 3
 
@@ -752,4 +786,4 @@ for(i in 1:length(etas)){
 
 
 ## d
-Further, the IPW and IPW* code ran significantly faster! Perhaps it is due to inefficiencies in my data definition matrix, but I had to limit the bootstrap to 10 repetitions each for gcomputation because 100 took too long to run.
+The results for (b) and (c) are very similar to one another in both estimates and standard errors. It is hard to compare them to the g-computation algorithm while I still have bugs.
