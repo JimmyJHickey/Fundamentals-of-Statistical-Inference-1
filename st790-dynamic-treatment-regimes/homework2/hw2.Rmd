@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(DynTxRegime)
 
-data <- read.csv(file =file.choose(), header = TRUE, sep = ",")
+data <- read.csv(file ="cholesterol.dat.txt", header = TRUE, sep = ",")
 data$A= data$trt
 
 y = data$chol0 - data$chol6
@@ -52,7 +52,7 @@ fitObj
 
 ot <- optTx(x = qObj)
 table(ot$optimalTx)
-table(ot$decisionFunc)
+
 estimator(x = qObj)
 ```
 
@@ -65,6 +65,12 @@ regimes = function(eta1, data)
   d1 = {data$wt > eta1}
   return(as.integer(x = d1))
 }
+
+moPropen <- buildModelObj(model = ~ 1,
+              solver.method = 'glm',
+              solver.args = list(family = 'binomial'),
+              predict.method = 'predict.glm',
+              predict.args = list(type = 'response'))
 ```
 
 ## c
@@ -72,9 +78,381 @@ regimes = function(eta1, data)
 
 
 ## d
+```{r}
+require(rpart)
+moClass <- buildModelObj(model = ~exercise + wt + smoke + trig0 + age + gender,
+  solver.method = 'rpart',
+  predict.method = 'predict',
+  predict.args = list(type = "class"))
 
+
+clObj <- optimalClass(moPropen = moPropen,
+            moMain = moMain, moCont = moCont, iter = 0L,
+            moClass = moClass,
+            data = data, response = y, txName = 'A',
+            verbose = TRUE)
+
+coef(object = clObj)
+
+table(ot$optimalTx)
+
+estimator(x = clObj)
+```
 
 # 2
 
+## a
+```{r}
+ldl = read.table("LDL.dat.txt", header=FALSE)
+
+# remove ID column
+ldl = ldl[,-1]
+names(ldl) = c("L1", "A1", "L2", "S2", "A2", "L3",
+               "S3", "A3", "L4", "S4", "A4", "Y", "S5")
+
+calc_betas = function(data, K){
+
+### Setting up variables in equations
+
+  # number of datapoints
+  n = dim(data)[1]
+  
+  # LDL measurements 
+  L = data[,c(1,3,6,9,12)]
+  
+  # Side effect experienced
+  S = data[,c(4,7,10,13)]
+  
+  # Statin dose received
+  A = data[,c(2,5,8,11)]
+  
+  # Y outcome vector
+  # shoutout to Samsul for helping me build Y
+  Y = as.numeric(t(cbind(L[,1],L[,2:5]-L[,1:4])))
+  
+  # X design matrix
+  X = NULL
+  
+  for(i in 1:n){
+    X = rbind(X, 
+              c(1, rep(0,6)))
+    
+    for(k in 2:(K+1)){
+      X = rbind(X,
+                c(0,
+                  1 - S[i, k-1],
+                  A[i, k-1]*(1-S[i,k-1]),
+                  L[i,k-1]*(1-S[i,k-1]),
+                  A[i,k-1]*L[i,k-1]*(1-S[i,k-1]),
+                  S[i,k-1],
+                  S[i,k-1]*A[i,k-1]))
+    }
+  }
+  
+  # fit linear model 
+  # -1 removes intercept
+  lm = lm(Y ~ -1 + X)
+  return(lm)  
+}
+
+K = 4
+
+betaslm = calc_betas(ldl, K)
+betas = coef(betaslm)
+sigmasq = (summary(betaslm)$sigma)^2
+
+
+cat("=================\n
+betas\n
+==================")
+print(betas)
+
+cat("=================\n
+sigma^2\n
+==================")
+print(sigmasq)
+
+```
+
+
+## b
+```{r}
+calc_psis = function(data, K){
+  
+  # number of datapoints
+  n = dim(data)[1]
+
+  # LDL measurements 
+  L = data[,c(1,3,6,9,12)]
+  
+  # Side effect experienced
+  S = data[,c(4,7,10,13)]
+  
+  # Statin dose received
+  A = data[,c(2,5,8,11)]
+  
+  # Y outcome vector
+  # take off side effects at 12 months
+  # again, thanks Samsul!
+  Ylogis = as.numeric(as.matrix(S[, -4]))
+  
+  # X design matrix for logistic regression
+  Xlogis = NULL
+  
+  for(i in 1:n){
+    for(k in 2:K){
+      abark = sum(A[i, 1:(k-1)])
+      Xlogis = rbind(Xlogis,
+                     c(abark,
+                       abark * L[i, k-1],
+                       S[i, k-1] * A[i, k-1]
+                       ))
+    }
+    
+  }
+  
+  psifit = glm(Ylogis ~ Xlogis, family = binomial)
+  psis = coef(psifit)
+  return(psis)
+}
+
+psis = calc_psis(ldl, K)
+
+cat("=================\n
+psis\n
+==================")
+print(psis)
+
+```
+
+
+## c
+```{r}
+logistic_func = function(x){
+  return( exp(x) / (1 + exp(x)) )
+}
+
+
+gcomp = function(data, regime, K, M){
+  bfit = calc_betas(data, K)
+  betas = bfit$coefficients
+  sigma = summary(bfit)$sigma
+
+  psis = calc_psis(data, K)
+  
+  # it would be more efficient to make this of length M, but that isn't working
+  y = NULL
+  
+  for(r in 1:M){
+    L = rep(0, K+1)
+    S = rep(0, K+1)
+    A = rep(0, K)
+
+    # random draw for L1
+    L[1] = rnorm(n=1, mean=betas[1], sd=sigma)
+    
+    for(k in 2:K+1){
+      # dose
+      A[k-1] = regime(L, S, A, k-1)
+      
+      # Equation 3
+      mu = L[k-1] + (betas[2] + betas[3]*A[k-1] + betas[4]*L[k-1] + 
+             betas[5]*A[k-1]*L[k-1]) * (1-S[k-1]) +
+             (betas[6] + betas[7]*A[k-1])*S[k-1]
+      L[k] = rnorm(n=1, mean=mu, sd=sigma)
+      
+      # Equation 4
+      Acum = sum(A[1:k-1])
+      prob = logistic_func( psis[1] + psis[2] * Acum +
+                     psis[3] * Acum * L[k-1] + psis[4] * S[k-1] * A[k-1])
+      S[k] = rbinom(n=1, size=1, prob=prob)
+    }
+
+    y = rbind(y,L[K+1])
+  }
+  
+  return(mean(y))
+}
+
+bootstrap_gcomp = function(data, regime, K, M, rep){
+  out = NULL
+  nrow = dim(data[1])
+  
+  for(i in 1:rep){
+    sample = data[sample(nrow, replace=TRUE),]
+    out = rbind(out, gcomp(data, regime, K, M))
+  }
+  
+  return(sd(out))
+}
+
+# STATIC REGIMES
+stat_reg1 = function(L, S, A, dk){
+  return(0)
+}
+
+stat_reg2 = function(L, S, A, dk){
+  return(dk %in% c(4) )
+}
+
+
+stat_reg3 = function(L, S, A, dk){
+  return(dk %in% c(3, 4) )
+}
+
+stat_reg4 = function(L, S, A, dk){
+  return(dk %in% c(2, 3, 4) )
+}
+
+stat_reg5 = function(L, S, A, dk){
+  return(dk %in% c(1, 2, 3, 4) )
+}
+
+stat_reg6 = function(L, S, A, dk){
+  return(dk %in% c(1, 2, 3) )
+}
+
+stat_reg7 = function(L, S, A, dk){
+  return(dk %in% c(1,2) )
+}
+
+stat_reg8 = function(L, S, A, dk){
+  return(dk %in% c(1) )
+}
+
+# regime 1
+est1 = gcomp(data = ldl, regime = stat_reg1, K = 4, M = 1000)
+sd1 = bootstrap_gcomp(data = ldl, regime = stat_reg1, K = 4, M = 1000, rep = 10)
+
+cat("================\nregime 1\nestimate:\t", est1, "\nstderr:\t\t", sd1, "\n================")
+
+# regime 2
+est2 = gcomp(data = ldl, regime = stat_reg2, K = 4, M = 1000)
+sd2 = bootstrap_gcomp(data = ldl, regime = stat_reg2, K = 4, M = 1000, rep = 10)
+
+cat("================\nregime 2\nestimate:\t", est2, "\nstderr:\t\t", sd2, "\n================")
+
+# regime 3
+est3 = gcomp(data = ldl, regime = stat_reg3, K = 4, M = 1000)
+sd3 = bootstrap_gcomp(data = ldl, regime = stat_reg3, K = 4, M = 1000, rep = 10)
+
+cat("================\nregime 3\nestimate:\t", est3, "\nstderr:\t\t", sd3, "\n================")
+
+# regime 4
+est4 = gcomp(data = ldl, regime = stat_reg4, K = 4, M = 1000)
+sd4 = bootstrap_gcomp(data = ldl, regime = stat_reg4, K = 4, M = 1000, rep = 10)
+
+cat("================\nregime 4\nestimate:\t", est4, "\nstderr:\t\t", sd4, "\n================")
+
+# regime 5
+est5 = gcomp(data = ldl, regime = stat_reg5, K = 4, M = 1000)
+sd5 = bootstrap_gcomp(data = ldl, regime = stat_reg5, K = 4, M = 1000, rep = 10)
+
+cat("================\nregime 5\nestimate:\t", est5, "\nstderr:\t\t", sd5, "\n================")
+
+# regime 6
+est6 = gcomp(data = ldl, regime = stat_reg6, K = 4, M = 1000)
+sd6 = bootstrap_gcomp(data = ldl, regime = stat_reg6, K = 4, M = 1000, rep = 10)
+
+cat("================\nregime 6\nestimate:\t", est6, "\nstderr:\t\t", sd6, "\n================")
+
+# regime 7
+est7 = gcomp(data = ldl, regime = stat_reg7, K = 4, M = 1000)
+sd7 = bootstrap_gcomp(data = ldl, regime = stat_reg7, K = 4, M = 1000, rep = 10)
+
+cat("================\nregime 7\nestimate:\t", est7, "\nstderr:\t\t", sd7, "\n================")
+
+# regime 8
+est8 = gcomp(data = ldl, regime = stat_reg8, K = 4, M = 1000)
+sd8 = bootstrap_gcomp(data = ldl, regime = stat_reg8, K = 4, M = 1000, rep = 10)
+
+cat("================\nregime 8\nestimate:\t", est8, "\nstderr:\t\t", sd8, "\n================")
+
+```
+
+## d
+### i
+```{r}
+regime_d1 = function(L, S, A, dk){
+  # only 0 if the patient is currently having a side effect
+  return(!S[dk])
+}
+
+estd1 = gcomp(data = ldl, regime = regime_d1, K = 4, M = 1000)
+sdd1 = bootstrap_gcomp(data = ldl, regime = regime_d1, K = 4, M = 1000, rep = 10)
+
+cat("================\nregime d1\nestimate:\t", estd1, "\nstderr:\t\t", sdd1, "\n================")
+```
+
+### ii
+```{r}
+regime_d2 = function(L, S, A, dk){
+  # 0 if the patient has ever had a side effect
+  return(!(1 %in% dk))
+}
+
+estd2 = gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000)
+sdd2 = bootstrap_gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000, rep = 10)
+
+cat("================\nregime d2\nestimate:\t", estd2, "\nstderr:\t\t", sdd2, "\n================")
+```
+
+## e
+```{r}
+etas = seq(90, 200, 10)
+
+for(i in 1:length(eta)){
+  eta_i = etas[i]
+  
+  regime_eta = function(L, S, A, dk){
+    return(S[dk] == 0 && L[dk] > eta_i)
+  }
+  
+  estd2 = gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000)
+  sdd2 = bootstrap_gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000, rep = 10)
+  
+  cat("================\nregime eta=", eta_i,"\nestimate:\t", estd2, "\nstderr:\t\t", sdd2, "\n================")
+  
+}
+
+```
+
+## f
 
 # 3
+
+## a
+```{r}
+
+calc_gamma = function(data){
+  out = matrix(0, nrow=4, ncol=3)
+  
+  gamma1_mod = glm(A1 ~ L1, data, family = "binomial")
+  # add extra 0 because other temrs has an S factor
+  out[1,] = c(gamma1_mod$coefficients, 0)
+  
+  gamma2_mod = glm(A2 ~ L2 + S2, data, family = "binomial")
+  out[2,] = gamma2_mod$coefficients
+  
+  gamma3_mod = glm(A3 ~ L3 + S3, data, family = "binomial")
+  out[3,] = gamma3_mod$coefficients
+  
+  gamma4_mod = glm(A4 ~ L4 + S4, data, family = "binomial")
+  out[4,] = gamma4_mod$coefficients
+  
+  return(out)
+}
+
+gammas = calc_gamma(ldl)
+colnames(gammas) = c("gamma_k1", "gamma_k2", "gamma_k3")
+row.names(gammas) = c("1", "2", "3", "4")
+
+print(gammas)
+
+```
+
+
+## b
+```{r}
+
+```
