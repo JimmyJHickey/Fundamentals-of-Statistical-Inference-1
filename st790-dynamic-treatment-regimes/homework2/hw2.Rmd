@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # 1
+We will proceed with the same that I used in homework 1.
+
 ```{r}
 library(DynTxRegime)
 
@@ -25,7 +27,7 @@ lm = buildModelObj(model = ~A + exercise + wt + smoke + trig0 + age + gender +
                    predict.args = list("type"="response"))
 # adj R^2 = 0.889
 
-summary(fit(lm, data, y))
+# summary(fit(lm, data, y))
 ```
 
 ## a. regression-based estimator
@@ -401,7 +403,7 @@ cat("================\nregime d2\nestimate:\t", estd2, "\nstderr:\t\t", sdd2, "\
 ```{r}
 etas = seq(90, 200, 10)
 
-for(i in 1:length(eta)){
+for(i in 1:length(etas)){
   eta_i = etas[i]
   
   regime_eta = function(L, S, A, dk){
@@ -455,4 +457,299 @@ print(gammas)
 ## b
 ```{r}
 
+# Cd vector for equation 5.27 on slide 304
+calc_cd = function(data, regime, K)
+{
+  n = dim(data)[1]
+  
+  L = cbind(data$L1, data$L2, data$L3, data$L4, data$Y)
+  # again need 0s becasue there are no side effects at the beginning
+  S = cbind(rep(0, n), data$S2, data$S3, data$S4, data$S5)
+  A = cbind(data$A1, data$A2, data$A3, data$A4)
+
+  
+  cd_vec = rep(1, n)
+  
+  for(i in 1:n){
+    
+    for(k in 1:K){
+        cd_vec[i] = cd_vec[i] * ( A[i,k] == regime(L[i,k], S[i,k], A[i,k], k)) 
+
+    }
+  }
+  return(cd_vec)
+}
+
+
+# equation 5.27 on slide 304
+calc_ipw = function(data, regime, K){
+  
+  n = dim(data)[1]
+  
+  Y = data$Y
+  L = cbind(data$L1, data$L2, data$L3, data$L4)
+  # again need 0s becasue there are no side effects at the beginning
+  S = cbind(rep(0, n), data$S2, data$S3, data$S4, data$S5)
+  A = cbind(data$A1, data$A2, data$A3, data$A4)
+  
+  cd = calc_cd(data, regime, K)
+  gamma = calc_gamma(data)
+  
+  ipw_est = 0
+  
+  for(i in 1:n){
+    num = cd[i]
+    
+    # only need to calculate if Cd == 1
+    if(cd[i]){
+      
+      # mulitply by Yi
+      num = Y[i]
+      
+      denom = 1
+      # calculate denominator
+      # the product of the propensities in equation 7
+      for(k in 1:K){
+        val = gamma[k, 1] + gamma[k, 2] * L[i,k] + gamma[k, 3] * S[i,k]
+        p = logistic_func(val)
+        dk = regime(L[i,], S[i,], A[i,], k)
+        denom = denom*(dk * p + (1-dk)*(1-p))
+      }
+      
+      ipw_est = ipw_est + num / denom
+      
+    } # end if
+  }
+  
+  return(ipw_est/n)
+}
+
+
+bootstrap_ipw = function(data, regime, K, rep){
+  out = NULL
+  nrow = dim(data)[1]
+  
+  for(i in 1:rep){
+    sample = data[sample(nrow, replace=TRUE),]
+    ipw = calc_ipw(sample, regime, K)
+    out = rbind(out, ipw)
+  }
+  return(sd(out))
+}
+
+
+# regime 1
+ipw_est1 = calc_ipw(data = ldl, regime = stat_reg1, K = 4)
+ipw_sd1 = bootstrap_ipw(data = ldl, regime = stat_reg1, K = 4, rep = 100)
+
+cat("================\nregime 1\nipw_estimate:\t", ipw_est1, "\nstderr:\t\t", ipw_sd1, "\n================")
+
+# regime 2
+ipw_est2 = calc_ipw(data = ldl, regime = stat_reg2, K = 4)
+ipw_sd2 = bootstrap_ipw(data = ldl, regime = stat_reg2, K = 4, rep = 100)
+
+cat("================\nregime 2\nipw_estimate:\t", ipw_est2, "\nstderr:\t\t", ipw_sd2, "\n================")
+
+# regime 3
+ipw_est3 = calc_ipw(data = ldl, regime = stat_reg3, K = 4)
+ipw_sd3 = bootstrap_ipw(data = ldl, regime = stat_reg3, K = 4, rep = 100)
+
+cat("================\nregime 3\nipw_estimate:\t", ipw_est3, "\nstderr:\t\t", ipw_sd3, "\n================")
+
+# regime 4
+ipw_est4 = calc_ipw(data = ldl, regime = stat_reg4, K = 4)
+ipw_sd4 = bootstrap_ipw(data = ldl, regime = stat_reg4, K = 4, rep = 100)
+
+cat("================\nregime 4\nipw_estimate:\t", ipw_est4, "\nstderr:\t\t", ipw_sd4, "\n================")
+
+# regime 5
+ipw_est5 = calc_ipw(data = ldl, regime = stat_reg5, K = 4)
+ipw_sd5 = bootstrap_ipw(data = ldl, regime = stat_reg5, K = 4, rep = 100)
+
+cat("================\nregime 5\nipw_estimate:\t", ipw_est5, "\nstderr:\t\t", ipw_sd5, "\n================")
+
+# regime 6
+ipw_est6 = calc_ipw(data = ldl, regime = stat_reg6, K = 4)
+ipw_sd6 = bootstrap_ipw(data = ldl, regime = stat_reg6, K = 4, rep = 100)
+
+cat("================\nregime 6\nipw_estimate:\t", ipw_est6, "\nstderr:\t\t", ipw_sd6, "\n================")
+
+# regime 7
+ipw_est7 = calc_ipw(data = ldl, regime = stat_reg7, K = 4)
+ipw_sd7 = bootstrap_ipw(data = ldl, regime = stat_reg7, K = 4, rep = 100)
+
+cat("================\nregime 7\nipw_estimate:\t", ipw_est7, "\nstderr:\t\t", ipw_sd7, "\n================")
+
+# regime 8
+ipw_est8 = calc_ipw(data = ldl, regime = stat_reg8, K = 4)
+ipw_sd8 = bootstrap_ipw(data = ldl, regime = stat_reg8, K = 4, rep = 100)
+
+cat("================\nregime 8\nipw_estimate:\t", ipw_est8, "\nstderr:\t\t", ipw_sd8, "\n================")
+
+# d1
+ipw_estd1 = calc_ipw(data = ldl, regime = regime_d2, K = 4)
+ipw_sdd1 = bootstrap_ipw(data = ldl, regime = regime_d2, K = 4,rep = 100)
+
+cat("================\nregime d1\nipw_estimate:\t", ipw_estd1, "\nstderr:\t\t", ipw_sdd1, "\n================")
+
+ipw_estd2 = calc_ipw(data = ldl, regime = regime_d2, K = 4)
+ipw_sdd2 = bootstrap_ipw(data = ldl, regime = regime_d2, K = 4, rep = 10)
+
+cat("================\nregime d2\nipw_estimate:\t", ipw_estd2, "\nstderr:\t\t", ipw_sdd2, "\n================")
+
+
+etas = seq(90, 200, 10)
+
+for(i in 1:length(etas)){
+  eta_i = etas[i]
+  
+  regime_eta = function(L, S, A, dk){
+    return(S[dk] == 0 && L[dk] > eta_i)
+  }
+  
+  ipw_estd2 = calc_ipw(data = ldl, regime = regime_d2, K = 4)
+  ipw_sdd2 = bootstrap_ipw(data = ldl, regime = regime_d2, K = 4, rep = 100)
+  
+  cat("================\nregime eta=", eta_i,"\nipw_estimate:\t", ipw_estd2, "\nstderr:\t\t", ipw_sdd2, "\n================")
+  
+}
+
 ```
+
+
+
+## c
+```{r}
+# equation 5.33 on slide 314
+calc_ipw_star = function(data, regime, K){
+  n = dim(data)[1]
+  
+  Y = data$Y
+  L = cbind(data$L1, data$L2, data$L3, data$L4)
+  # again need 0s becasue there are no side effects at the beginning
+  S = cbind(rep(0, n), data$S2, data$S3, data$S4, data$S5)
+  A = cbind(data$A1, data$A2, data$A3, data$A4)
+  
+  cd = calc_cd(data, regime, K)
+  gamma = calc_gamma(data)
+  
+  sum1 = 0
+  sum2 = 0
+  
+  for(i in 1:n){
+    num = cd[i]
+    
+    # only need to calculate if Cd == 1
+    if(cd[i]){
+      
+      denom = 1
+      # calculate denominator
+      # the product of the propensities in equation 7
+      for(k in 1:K){
+        val = gamma[k, 1] + gamma[k, 2] * L[i,k] + gamma[k, 3] * S[i,k]
+        p = logistic_func(val)
+        dk = regime(L[i,], S[i,], A[i,], k)
+        denom = denom*(dk * p + (1-dk)*(1-p))
+      }
+      
+      sum1 = sum1 + cd[i] / denom
+      sum2 = sum2 + cd[i] * Y[i] / denom
+    } # end if
+  }
+  
+  return(sum2 / sum1)
+}
+
+bootstrap_ipw_star = function(data, regime, K, rep){
+  out = NULL
+  nrow = dim(data)[1]
+  
+  for(i in 1:rep){
+    sample = data[sample(nrow, replace=TRUE),]
+    ipw_star = calc_ipw_star(sample, regime, K)
+    out = rbind(out, ipw_star)
+  }
+  return(sd(out))
+}
+
+
+# regime 1
+ipw_star_est1 = calc_ipw_star(data = ldl, regime = stat_reg1, K = 4)
+ipw_star_sd1 = bootstrap_ipw_star(data = ldl, regime = stat_reg1, K = 4, rep = 100)
+
+cat("================\nregime 1\nipw_star_estimate:\t", ipw_star_est1, "\nstderr:\t\t\t", ipw_star_sd1, "\n================")
+
+# regime 2
+ipw_star_est2 = calc_ipw_star(data = ldl, regime = stat_reg2, K = 4)
+ipw_star_sd2 = bootstrap_ipw_star(data = ldl, regime = stat_reg2, K = 4, rep = 100)
+
+cat("================\nregime 2\nipw_star_estimate:\t", ipw_star_est2, "\nstderr:\t\t\t", ipw_star_sd2, "\n================")
+
+# regime 3
+ipw_star_est3 = calc_ipw_star(data = ldl, regime = stat_reg3, K = 4)
+ipw_star_sd3 = bootstrap_ipw_star(data = ldl, regime = stat_reg3, K = 4, rep = 100)
+
+cat("================\nregime 3\nipw_star_estimate:\t", ipw_star_est3, "\nstderr:\t\t\t", ipw_star_sd3, "\n================")
+
+# regime 4
+ipw_star_est4 = calc_ipw_star(data = ldl, regime = stat_reg4, K = 4)
+ipw_star_sd4 = bootstrap_ipw_star(data = ldl, regime = stat_reg4, K = 4, rep = 100)
+
+cat("================\nregime 4\nipw_star_estimate:\t", ipw_star_est4, "\nstderr:\t\t\t", ipw_star_sd4, "\n================")
+
+# regime 5
+ipw_star_est5 = calc_ipw_star(data = ldl, regime = stat_reg5, K = 4)
+ipw_star_sd5 = bootstrap_ipw_star(data = ldl, regime = stat_reg5, K = 4, rep = 100)
+
+cat("================\nregime 5\nipw_star_estimate:\t", ipw_star_est5, "\nstderr:\t\t\t", ipw_star_sd5, "\n================")
+
+# regime 6
+ipw_star_est6 = calc_ipw_star(data = ldl, regime = stat_reg6, K = 4)
+ipw_star_sd6 = bootstrap_ipw_star(data = ldl, regime = stat_reg6, K = 4, rep = 100)
+
+cat("================\nregime 6\nipw_star_estimate:\t", ipw_star_est6, "\nstderr:\t\t\t", ipw_star_sd6, "\n================")
+
+# regime 7
+ipw_star_est7 = calc_ipw_star(data = ldl, regime = stat_reg7, K = 4)
+ipw_star_sd7 = bootstrap_ipw_star(data = ldl, regime = stat_reg7, K = 4, rep = 100)
+
+cat("================\nregime 7\nipw_star_estimate:\t", ipw_star_est7, "\nstderr:\t\t\t", ipw_star_sd7, "\n================")
+
+# regime 8
+ipw_star_est8 = calc_ipw_star(data = ldl, regime = stat_reg8, K = 4)
+ipw_star_sd8 = bootstrap_ipw_star(data = ldl, regime = stat_reg8, K = 4, rep = 100)
+
+cat("================\nregime 8\nipw_star_estimate:\t", ipw_star_est8, "\nstderr:\t\t\t", ipw_star_sd8, "\n================")
+
+# d1
+ipw_star_estd1 = calc_ipw_star(data = ldl, regime = regime_d2, K = 4)
+ipw_star_sdd1 = bootstrap_ipw_star(data = ldl, regime = regime_d2, K = 4,rep = 100)
+
+cat("================\nregime d1\nipw_star_estimate:\t", ipw_star_estd1, "\nstderr:\t\t\t", ipw_star_sdd1, "\n================")
+
+ipw_star_estd2 = calc_ipw_star(data = ldl, regime = regime_d2, K = 4)
+ipw_star_sdd2 = bootstrap_ipw_star(data = ldl, regime = regime_d2, K = 4, rep = 10)
+
+cat("================\nregime d2\nipw_star_estimate:\t", ipw_star_estd2, "\nstderr:\t\t\t", ipw_star_sdd2, "\n================")
+
+
+etas = seq(90, 200, 10)
+
+for(i in 1:length(etas)){
+  eta_i = etas[i]
+  
+  regime_eta = function(L, S, A, dk){
+    return(S[dk] == 0 && L[dk] > eta_i)
+  }
+  
+  ipw_star_estd2 = calc_ipw_star(data = ldl, regime = regime_d2, K = 4)
+  ipw_star_sdd2 = bootstrap_ipw_star(data = ldl, regime = regime_d2, K = 4, rep = 100)
+  
+  cat("================\nregime eta=", eta_i,"\nipw_star_estimate:\t", ipw_star_estd2, "\nstderr:\t\t\t", ipw_star_sdd2, "\n================")
+}
+```
+
+
+
+## d
+Further, the IPW and IPW* code ran significantly faster! Perhaps it is due to inefficiencies in my data definition matrix, but I had to limit the bootstrap to 10 repetitions each for gcomputation because 100 took too long to run.
