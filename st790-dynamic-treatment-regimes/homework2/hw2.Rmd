@@ -424,7 +424,7 @@ cat("================\nregime d1\nestimate:\t", estd1, "\nstderr:\t\t", sdd1, "\
 ```{r}
 regime_d2 = function(L, S, A, dk){
   # 0 if the patient has ever had a side effect
-  return(!(1 %in% dk))
+  return(!(1 %in% S))
 }
 
 estd2 = gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000)
@@ -444,8 +444,8 @@ for(i in 1:length(etas)){
     return(S[dk] == 0 && L[dk] > eta_i)
   }
   
-  estd2 = gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000)
-  sdd2 = bootstrap_gcomp(data = ldl, regime = regime_d2, K = 4, M = 1000, rep = 100)
+  estd2 = gcomp(data = ldl, regime = regime_eta, K = 4, M = 1000)
+  sdd2 = bootstrap_gcomp(data = ldl, regime = regime_eta, K = 4, M = 1000, rep = 100)
   
   cat("================\nregime eta=", eta_i,"\nestimate:\t", estd2, "\nstderr:\t\t", sdd2, "\n================")
   
@@ -458,7 +458,7 @@ Notice that for the static regimes, the value is higher for regimes with fewer h
 
 In part (d), the second rule has a higher value than the first. This shows that it may be a better idea to stop high doses to anyone that has EVER shown a side effect, rather than just people that are currently experiencing one.
 
-In part (e), all the regimes have similar value, regardless of the eta value.
+In part (e), the value of the regime increases as out eta threshold increases.
 
 
 # 3
@@ -513,8 +513,8 @@ calc_cd = function(data, regime, K)
   for(i in 1:n){
     
     for(k in 1:K){
-        cd_vec[i] = cd_vec[i] * ( A[i,k] == regime(L[i,k], S[i,k], A[i,k], k)) 
-
+        decision = regime(L[i,k], S[i,k], A[i,k], k)
+        cd_vec[i] = cd_vec[i] * ( A[i,k] == decision ) 
     }
   }
   return(cd_vec)
@@ -539,11 +539,8 @@ calc_ipw = function(data, regime, K){
   
   for(i in 1:n){
     num = cd[i]
-    
     # only need to calculate if Cd == 1
     if(cd[i]){
-      
-      # mulitply by Yi
       num = Y[i]
       
       denom = 1
@@ -644,13 +641,13 @@ for(i in 1:length(etas)){
   eta_i = etas[i]
   
   regime_eta = function(L, S, A, dk){
-    return(S[dk] == 0 && L[dk] > eta_i)
+    return((S == 0) && (L > eta_i))
   }
   
-  ipw_estd2 = calc_ipw(data = ldl, regime = regime_d2, K = 4)
-  ipw_sdd2 = bootstrap_ipw(data = ldl, regime = regime_d2, K = 4, rep = 100)
-  
-  cat("================\nregime eta=", eta_i,"\nipw_estimate:\t", ipw_estd2, "\nstderr:\t\t", ipw_sdd2, "\n================")
+  ipw_est_eta = calc_ipw(data = ldl, regime = regime_eta, K = 4)
+  ipw_sd_eta = bootstrap_ipw(data = ldl, regime = regime_eta, K = 4, rep = 100)
+
+  cat("================\nregime eta=", eta_i,"\nipw_estimate:\t", ipw_est_eta, "\nstderr:\t\t", ipw_sd_eta, "\n================")
   
 }
 
@@ -681,7 +678,6 @@ calc_ipw_star = function(data, regime, K){
     
     # only need to calculate if Cd == 1
     if(cd[i]){
-      
       denom = 1
       # calculate denominator
       # the product of the propensities in equation 7
@@ -779,13 +775,13 @@ for(i in 1:length(etas)){
   eta_i = etas[i]
   
   regime_eta = function(L, S, A, dk){
-    return(S[dk] == 0 && L[dk] > eta_i)
+    return(S == 0 && L > eta_i)
   }
   
-  ipw_star_estd2 = calc_ipw_star(data = ldl, regime = regime_d2, K = 4)
-  ipw_star_sdd2 = bootstrap_ipw_star(data = ldl, regime = regime_d2, K = 4, rep = 100)
-  
-  cat("================\nregime eta=", eta_i,"\nipw_star_estimate:\t", ipw_star_estd2, "\nstderr:\t\t\t", ipw_star_sdd2, "\n================")
+  ipw_star_eta = calc_ipw_star(data = ldl, regime = regime_eta, K = 4)
+  ipw_starsd_eta = bootstrap_ipw_star(data = ldl, regime = regime_eta, K = 4, rep = 100)
+
+  cat("================\nregime eta=", eta_i,"\nipw_star_estimate:\t", ipw_star_eta, "\nstderr:\t\t\t", ipw_starsd_eta, "\n================")
 }
 ```
 
@@ -796,5 +792,4 @@ The results for (b) and (c) are very similar to one another in both estimates an
 
 They had less disparity in value when between regimes d1 and d2.
 
-They also had similar (well, exactly the same) values across all eta choices.
-
+Interestingly, the IPW* estimator increases as eta increases while IPW estimator increases until $\eta = 150$, and then decreases.
