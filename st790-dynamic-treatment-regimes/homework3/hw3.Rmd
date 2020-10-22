@@ -571,6 +571,7 @@ for(i in 1:length(etas)){
     
 }
 
+print(ipw_list)
 
 cat("The optimal choice in eta is ", etas[eta_opt_ind])
 ```
@@ -688,7 +689,7 @@ for(i in 1:length(etas)){
     }
     
 }
-
+print(aipw_list)
 
 cat("The optimal choice in eta is ", etas[eta_opt_ind])
 ```
@@ -776,20 +777,20 @@ moPropen_list = list(moPropen_S12,
 # regime at decision 1
 regime_d1 = function(eta1, data){
   # cast to integer because idk it it can handle booleans
-  return( as.integer(data$L1 > eta1) )
+  return(as.integer(data$L1>eta1))
 }
 
 regime_d2 = function(eta2, data){
   # check S2 first for hopeful lazy eval
-  return( as.integer(data$S2 == 0 && data$L2 > eta2) )
+  return(as.integer(data$S2==0 & data$L2>eta2))
 }
 
 regime_d3 = function(eta3, data){
-  return( as.integer(data$S3 && data$L3 > eta3))
+  return(as.integer(data$S3==0 & data$L3>eta3))
 }
 
 regime_d4 = function(eta4, data){
-  return( as.integer(data$S4 && data$L4> eta4))
+  return(as.integer(data$S4==0 & data$L4>eta4))
 }
 
 # Halloway slide 62
@@ -805,37 +806,29 @@ Domains = matrix(data =
   ncol = 2L)
 
 
-pop.size = 10 # Too Small
+pop.size = 500 # Too Small
 
 
-moMain_fs = buildModelObjSubset(model = ~L1,
-                                solver.method = 'lm',
-                                subset = 'fs',
-                                dp = 1L)
+vsObj = optimalSeq(moPropen = list(moPropen_S12,moPropen_S22,moPropen_S21,moPropen_S32,moPropen_S31,moPropen_S42,moPropen_S41),
+                    data = ldl, response = -1*ldl$Y, txName = c('A1','A2','A3','A4'),
+                    regimes = list(regime_d1, regime_d2,regime_d3,regime_d4),
+                    fSet = list(fSet1, fSet2,fSet3,fSet4),
+                    Domains = as.numeric(Domains),
+                    starting.values = starting.values,
+                    pop.size = pop.size,
+                    verbose = TRUE)
 
-moCont_fs = buildModelObjSubset(model = ~L1,
-                                solver.method = 'lm',
-                                subset = 'fs',
-                                dp = 1L)
 
-# # Halloway slide 63
-# vsObj = optimalSeq(moPropen = moPropen_list,
-#                    moMain = list(moMain_fs, moMain_S21, moMain_S22, moMain_S31, moMain_S32, moMain_S41, moMain_S42),
-#                    moCont = list(moCont_fs, moCont_S21, moCont_S22, moCont_S31, moCont_S32, moCont_S41, moCont_S42),
-#                    data = ldl,
-#                    response = -1 * ldl$Y,
-#                    txName = c("A1", "A2", "A3", "A4"),
-#                    regimes = list(regime_d1, regime_d2, regime_d3, regime_d4),
-#                    fSet = list(fSet1, fSet2, fSet3, fSet4),
-#                    Domains = as.numeric(Domains),
-#                    starting.values = starting.values, 
-#                    pop.size = pop.size)
-
+cat("Here we get a value of: ", estimator(vsObj), "\n and coefficients:\n")
+print(coef(vsObj))
+cat("\nUsing output from a run with a small population size (500), we get the optimal rule of giving a high dose at decision 1 if LDL > 165.3 = 0.9918 /0.006")
 ```
 
 
 
 ##  b
+
+This cutoff seems more reasonable since $\eta$ is not directly on the boundary as in 3 and 4; however, it does come with a lower value.  
 
 # 6
 
