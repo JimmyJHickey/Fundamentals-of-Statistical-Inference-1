@@ -1,0 +1,284 @@
+---
+title: "Data Analysis Homework 3"
+author: "Jimmy Hickey"
+date: "10/21/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(DynTxRegime)
+library(rgenoud)
+library(modelObj)
+library(rpart)
+
+```
+
+
+\newpage
+
+# 2
+
+## a
+```{r}
+# adapting code from Dr. Halloway's slide 21
+# start at decision 4 with data S4 (side effect at 4)
+fSet4 = function(S4){
+  
+  # can be (0,1) or (0)
+  # label them option S42 and S41
+  # thse are A_k,2 and A_k,1 in problem statement
+  subsets = list( list("S42", c(0,1)),
+                  list("S41", c(0)))
+    
+  txOpts = rep(x = NA, times = length(x = S4))
+  
+  txOpts[ S4 == 0] = "S42"
+  txOpts[ S4 == 1] = "S41"
+  
+  # need named list
+  return( list("subsets" = subsets, "txOpts" = txOpts))
+  
+}
+
+
+# set up models and contrasts
+# similar to Halloway slide 32
+
+# models for decision S41
+# include data up to decision 4
+moMain_S41 = buildModelObjSubset(model = ~ L1 + L2 + L3 + L4 + S2 + S3,
+                                 solver.method = "lm",
+                                 subset= "S41",
+                                 dp = 2L)
+
+# only want L4 here
+moCont_S41 = buildModelObjSubset(model = ~ L4,
+                                 solver.method = "lm",
+                                 subset= "S41",
+                                 dp = 2L)
+
+# models for decision S42
+# include data up to decision 4
+moMain_S42 = buildModelObjSubset(model = ~ L1 + L2 + L3 + L4 + S2 + S3,
+                                 solver.method = "lm",
+                                 subset= "S42",
+                                 dp = 2L)
+
+# only want L4 here
+moCont_S42 = buildModelObjSubset(model = ~ L4,
+                                 solver.method = "lm",
+                                 subset= "S42",
+                                 dp = 2L)
+
+moMain4_list = list(moMain_S41, moMain_S42)
+moCont4_list = list(moCont_S41, moCont_S42)
+
+# qlearn
+# note we take response -1 to minimize instead of maximize
+q4 = qLearn(moMain = moMain4_list,
+            moCont = moCont4_list,
+            iter = 0L,
+            data = ldl,
+            response = -1 * ldl$Y,
+            txName = "A4",
+            fSet = fSet4
+            )
+
+# getting at coefficients is ugly
+cat("Stage 4 decision:\nGive the patient the standard dose if they are experiencing side effects.\nIf the patient is not experiencing side effects, provide a high dose only if LDL <", -coef(q4)$outcome$`Subset=S42`$Combined['A4'] / coef(q4)$outcome$`Subset=S42`$Combined['L4:A4'], "=", -coef(q4)$outcome$`Subset=S42`$Combined['A4'],"/" , coef(q4)$outcome$`Subset=S42`$Combined['L4:A4'] )
+
+
+# Decision point 3
+
+fSet3 = function(S3){
+  
+  # can be (0,1) or (0)
+  # label them option S32 and S31
+  # thse are A_k,2 and A_k,1 in problem statement
+  subsets = list( list("S32", c(0,1)),
+                  list("S31", c(0)))
+    
+  txOpts = rep(x = NA, times = length(x = S3))
+  
+  txOpts[ S3 == 0] = "S32"
+  txOpts[ S3 == 1] = "S31"
+  
+  # need named list
+  return( list("subsets" = subsets, "txOpts" = txOpts))
+  
+}
+
+
+# set up models and contrasts
+# similar to Halloway slide 32
+
+# models for decision S31
+# include data up to decision 3
+moMain_S31 = buildModelObjSubset(model = ~ L1 + L2 + L3 + S2,
+                                 solver.method = "lm",
+                                 subset= "S31",
+                                 dp = 2L)
+
+# only want L3 here
+moCont_S31 = buildModelObjSubset(model = ~ L3,
+                                 solver.method = "lm",
+                                 subset= "S31",
+                                 dp = 2L)
+
+# models for decision S32
+# include data up to decision 3
+moMain_S32 = buildModelObjSubset(model = ~ L1 + L2 + L3 + S2,
+                                 solver.method = "lm",
+                                 subset= "S32",
+                                 dp = 2L)
+
+# only want L3 here
+moCont_S32 = buildModelObjSubset(model = ~ L3,
+                                 solver.method = "lm",
+                                 subset= "S32",
+                                 dp = 2L)
+
+moMain3_list = list(moMain_S31, moMain_S32)
+moCont3_list = list(moCont_S31, moCont_S32)
+
+# qlearn
+# response is the output from qlearning at decision 4!
+q3 = qLearn(moMain = moMain3_list,
+            moCont = moCont3_list,
+            iter = 0L,
+            data = ldl,
+            response = q4,
+            txName = "A3",
+            fSet = fSet3
+            )
+
+# getting at coefficients is ugly
+cat("Stage 3 decision:\nGive the patient the standard dose if they are experiencing side effects.\nIf the patient is not experiencing side effects, provide a high dose only if LDL <", -coef(q3)$outcome$`Subset=S32`$Combined['A3'] / coef(q3)$outcome$`Subset=S32`$Combined['L3:A3'], "=", -coef(q3)$outcome$`Subset=S32`$Combined['A3'],"/" , coef(q3)$outcome$`Subset=S32`$Combined['L3:A3'] )
+
+
+# Decision point 2
+
+fSet2 = function(S2){
+  
+  # can be (0,1) or (0)
+  # label them option S22 and S21
+  # thse are A_k,2 and A_k,1 in problem statement
+  subsets = list( list("S22", c(0,1)),
+                  list("S21", c(0)))
+  
+  txOpts = rep(x = NA, times = length(x = S2))
+  
+  txOpts[ S2 == 0] = "S22"
+  txOpts[ S2 == 1] = "S21"
+  
+  # need named list
+  return( list("subsets" = subsets, "txOpts" = txOpts))
+  
+}
+
+
+# set up models and contrasts
+# similar to Halloway slide 22
+
+# models for decision S21
+# include data up to decision 2
+moMain_S21 = buildModelObjSubset(model = ~ L1 + L2,
+                                 solver.method = "lm",
+                                 subset= "S21",
+                                 dp = 2L)
+
+# only want L2 here
+moCont_S21 = buildModelObjSubset(model = ~ L2,
+                                 solver.method = "lm",
+                                 subset= "S21",
+                                 dp = 2L)
+
+# models for decision S22
+# include data up to decision 2
+moMain_S22 = buildModelObjSubset(model = ~ L1 + L2,
+                                 solver.method = "lm",
+                                 subset= "S22",
+                                 dp = 2L)
+
+# only want L2 here
+moCont_S22 = buildModelObjSubset(model = ~ L2,
+                                 solver.method = "lm",
+                                 subset= "S22",
+                                 dp = 2L)
+
+moMain2_list = list(moMain_S21, moMain_S22)
+moCont2_list = list(moCont_S21, moCont_S22)
+
+# qlearn
+# response is the output from qlearning at decision 4!
+q2 = qLearn(moMain = moMain2_list,
+            moCont = moCont2_list,
+            iter = 0L,
+            data = ldl,
+            response = q3,
+            txName = "A2",
+            fSet = fSet2
+)
+
+# getting at coefficients is ugly
+cat("Stage 2 decision:\nGive the patient the standard dose if they are experiencing side effects.\nIf the patient is not experiencing side effects, provide a high dose only if LDL <", -coef(q2)$outcome$`Subset=S22`$Combined['A2'] / coef(q2)$outcome$`Subset=S22`$Combined['L2:A2'], "=", -coef(q2)$outcome$`Subset=S22`$Combined['A2'],"/" , coef(q2)$outcome$`Subset=S22`$Combined['L2:A2'] )
+
+
+# Decision point 1
+
+fSet1 = function(data){
+  
+  # no side effects at 1
+  # so only make decision based on LDL
+  subsets = list( list("S12", c(0,1)))
+  
+  txOpts = rep(x = "S12", times = dim(data)[1])
+  
+  # need named list
+  return( list("subsets" = subsets, "txOpts" = txOpts))
+  
+}
+
+
+# models for decision S12
+# include data up to decision 1
+moMain_S12 = buildModelObjSubset(model = ~ L1,
+                                 solver.method = "lm",
+                                 subset= "S12",
+                                 dp = 2L)
+
+# only want L1 here
+moCont_S12 = buildModelObjSubset(model = ~ L1,
+                                 solver.method = "lm",
+                                 subset= "S12",
+                                 dp = 2L)
+
+moMain1_list = list(moMain_S12)
+moCont1_list = list(moCont_S12)
+
+# qlearn
+# response is the output from qlearning at decision 4!
+q1 = qLearn(moMain = moMain1_list,
+            moCont = moCont1_list,
+            iter = 0L,
+            data = ldl,
+            response = q2,
+            txName = "A1",
+            fSet = fSet1
+)
+
+# getting at coefficients is ugly
+cat("Stage 1 decision:\nGive the patient the standard dose if they are experiencing side effects.\nIf the patient is not experiencing side effects, provide a high dose only if LDL <", -coef(q1)$outcome$`Subset=S12`$Combined['A1'] / coef(q1)$outcome$`Subset=S12`$Combined['L1:A1'], "=", -coef(q1)$outcome$`Subset=S12`$Combined['A1'],"/" , coef(q1)$outcome$`Subset=S12`$Combined['L1:A1'] )
+
+```
+
+All of these LDL cut offs seem very high, so perhaps something is wrong.
+
+## b
+
+```{r}
+cat("The value of the regime is decided at the last step of our backward iterative process. That is, it is the value of q1: 103.6736.")
+q1
+```
+

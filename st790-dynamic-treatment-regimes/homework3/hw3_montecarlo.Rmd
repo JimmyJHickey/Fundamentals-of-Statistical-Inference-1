@@ -1,0 +1,243 @@
+---
+title: "Hw3 Monte Carlo"
+author: "Jimmy Hickey"
+date: "10/22/2020"
+output: pdf_document
+---
+
+# 1
+
+## f
+### i
+```{r}
+library("DynTxRegime")
+# generate data
+logistic_func = function(x){
+  return( exp(x) / (1 + exp(x)) )
+}
+n = 1000
+px = 0.5
+
+X1 = rbinom(n, 1 , px)
+
+
+A1 = rbinom(n, 1, logistic_func(0.3 - 0.5 * X1))
+
+
+X2 = rnorm(n,  
+           1 + 0.5*X1 + -0.75 *A1 + 0.25 * X1 * A1,
+           sqrt(2))
+
+A2 = rbinom(n, 1, logistic_func(0 + 0.05 * X1 + 0.1 * A1 + -1 *X1 * A1 + -0.1 * X2))
+
+Y = rnorm(n,
+          3 + 0 + 0.1 * A1 + 0.5 * X1 * A1 + 0.5 * X2 + 1 * X2^2 + A2*(-1 + 0.75 * X2 + 0.5* A1),
+          sqrt(10))
+
+```
+
+### ii
+
+```{r}
+QLearn_wrapper = function(data, d2Main, d2Cont, d1Main, d1Cont){
+  q2 = qLearn(moMain =d2Main,
+              moCont = d2Cont,
+              data = data,
+              response = data$Y,
+              txName = "A2",
+              verbose = FALSE)
+  
+  q1 = qLearn(moMain = d1Main,
+              moCont = d1Cont,
+              data = data,
+              response = q2,
+              txName = "A1",
+              verbose = FALSE)
+  
+  beta1 = coef(q1)$outcome$Combined
+  beta2 = coef(q2)$outcome$Combined
+  val = estimator(q1)
+  
+  return(list("val" = val, "beta1" = beta1, "beta2" = beta2))
+}
+
+#thank you Ye for the apply tricks!
+MC_calcs = function(est_mat, true_val){
+  B = dim(est_mat)[1]
+  n = length(true_val)
+  
+  mean = apply(est_mat, 2, mean)
+  
+  bias = mean - true_val
+  
+  relative_bias = bias / true_val
+  
+  stddev = apply(est_mat, 2, sd)
+  
+  mse = apply( (est_mat - matrix(rep(true_val, B), nrow=B, byrow = TRUE))^2, 2, sum ) /B
+  
+  return(list("mean" = mean,
+              "bias" = bias,
+              "relative_bias" = relative_bias,
+              "standard dev" = stddev,
+              "mse" = mse))
+}
+
+
+B = 1000
+beta2 = c(3,0,0.1,0.5, 0.5, 1, -1, 0.75, 0.5)
+beta1 = c(6.8098, 1.6787, -1.2372, 0.4085)
+v = 7.64915
+
+beta2_ii = matrix(NA, nrow = B, ncol =length(beta2))
+colnames(beta2_ii) = c("Intercept", "X1", "A1", "X2", "I(X2^2)", "A2", "X1:A1", "X2:A2", "A1:A2")
+beta2_iii = matrix(NA, nrow = B, ncol =length(beta2) - 1)
+colnames(beta2_iii) = c("Intercept", "X1", "A1", "X2", "A2", "X1:A1", "X2:A2", "A1:A2")
+beta2_iv = matrix(NA, nrow = B, ncol =length(beta2) - 2)
+colnames(beta2_iv) = c("Intercept", "X1", "A1", "X2", "A2", "X1:A1", "X2:A2")
+
+
+beta1_ii = matrix(NA, nrow = B, ncol =length(beta1))
+colnames(beta1_ii) = c("Intercept", "X1", "A1", "X1:A1")
+beta1_iii = matrix(NA, nrow = B, ncol =length(beta1))
+colnames(beta1_iii) = c("Intercept", "X1", "A1", "X1:A1")
+beta1_iv = matrix(NA, nrow = B, ncol =length(beta1))
+colnames(beta1_iv) = c("Intercept", "X1", "A1", "X1:A1")
+
+
+vhat_ii = matrix(NA, nrow = B, ncol = 1)
+vhat_iii = matrix(NA, nrow = B, ncol = 1)
+vhat_iv = matrix(NA, nrow = B, ncol = 1)
+
+ # decision 2 models
+  
+moMain_ii2 = buildModelObj(model = ~ X1 + A1 + X1:A1 + X2 + I(X2^2),
+                 solver.method = "lm",
+                 predict.method = "predict.lm")
+
+moCont_ii2 = buildModelObj(model = ~ A1 + X2,
+               solver.method = "lm",
+               predict.method = "predict.lm")
+
+
+moMain_iii2 = buildModelObj(model = ~ X1 + A1 + X1:A1 + X2,
+                 solver.method = "lm",
+                 predict.method = "predict.lm")
+
+moCont_iii2 = buildModelObj(model = ~ A1 + X2,
+                 solver.method = "lm",
+                 predict.method = "predict.lm")
+
+
+moMain_iv2 = buildModelObj(model = ~ X1 + A1 + X1:A1 + X2,
+                 solver.method = "lm",
+                 predict.method = "predict.lm")
+
+moCont_iv2 = buildModelObj(model = ~ A1,
+                 solver.method = "lm",
+                 predict.method = "predict.lm")
+
+# decision 1 models
+
+moMain_1 = buildModelObj(model = ~ X1,
+                 solver.method = "lm",
+                 predict.method = "predict.lm")
+
+moCont_1 = buildModelObj(model = ~ X1,
+               solver.method = "lm",
+               predict.method = "predict.lm")
+
+
+for(i in 1:B){
+  n = 1000
+  
+  px = 0.5
+  
+  X1 = rbinom(n, 1 , px)
+  
+  
+  A1 = rbinom(n, 1, logistic_func(0.3 - 0.5 * X1))
+  
+  
+  X2 = rnorm(n,  
+             1 + 0.5*X1 + -0.75 *A1 + 0.25 * X1 * A1,
+             sqrt(2))
+  
+  A2 = rbinom(n, 1, logistic_func(0 + 0.05 * X1 + 0.1 * A1 + -1 *X1 * A1 + -0.1 * X2))
+  
+  Y = rnorm(n,
+            3 + 0 + 0.1 * A1 + 0.5 * X1 * A1 + 0.5 * X2 + 1 * X2^2 + A2*(-1 + 0.75 * X2 + 0.5* A1),
+            sqrt(10))
+  
+  data = data.frame(cbind(X1, A1, X2, A2, Y))
+  
+ 
+  
+  qii = QLearn_wrapper(data, moMain_ii2, moCont_ii2, moMain_1, moCont_1)
+  beta1_ii[i,] = qii$beta1
+  beta2_ii[i,] = qii$beta2
+  vhat_ii[i,] = qii$val
+  
+  qiii = QLearn_wrapper(data, moMain_iii2, moCont_iii2, moMain_1, moCont_1)
+  beta1_iii[i,] = qiii$beta1
+  beta2_iii[i,] = qiii$beta2
+  vhat_iii[i,] = qiii$val
+  
+  qiv = QLearn_wrapper(data, moMain_iv2, moCont_iv2, moMain_1, moCont_1)
+  beta1_iv[i,] = qiv$beta1
+  beta2_iv[i,] = qiv$beta2
+  vhat_iv[i,] = qiv$val
+}
+
+```
+
+## ii
+```{r}
+print(MC_calcs(beta1_ii[,3:4], beta1[3:4]))
+print(MC_calcs(beta2_ii[,c(6, 8, 9)], beta2[7:9]))
+print(MC_calcs(vhat_ii, v))
+
+```
+
+
+## iii
+```{r}
+print(MC_calcs(beta1_iii[,3:4], beta1[3:4]))
+print(MC_calcs(beta2_iii[,c(5, 7, 8)], beta2[7:9]))
+print(MC_calcs(vhat_iii, v))
+
+
+print("ARE beta1 iii")
+print(MC_calcs(beta1_ii[,3:4], beta1[3:4])$mse/MC_calcs(beta1_iii[,3:4], beta1[3:4])$mse)
+
+print("ARE beta2 iii")
+print(MC_calcs(beta2_ii[,c(6, 8, 9)], beta2[7:9])$mse/MC_calcs(beta2_iii[,c(5, 7, 8)], beta2[7:9])$mse)
+
+print("ARE vhat iii")
+print(MC_calcs(vhat_ii, v)$mse/MC_calcs(vhat_iii, v)$mse)
+```
+
+
+## iii
+```{r}
+print(MC_calcs(beta1_iv[,3:4], beta1[3:4]))
+print(MC_calcs(beta2_iv[,c(5, 7)], beta2[7:8]))
+print(MC_calcs(vhat_iv, v))
+
+
+print("ARE beta1 iv")
+print(MC_calcs(beta1_ii[,3:4], beta1[3:4])$mse/MC_calcs(beta1_iv[,3:4], beta1[3:4])$mse)
+
+print("ARE beta2 iv")
+print(MC_calcs(beta2_ii[,c(6, 8)], beta2[7:8])$mse/MC_calcs(beta2_iv[,c(5, 7)], beta2[7:8])$mse)
+
+print("ARE vhat iv")
+print(MC_calcs(vhat_ii, v)$mse/MC_calcs(vhat_iv, v)$mse)
+```
+
+
+
+
+
+## g
+You can see by these AREs that we lose significant efficiency for even a slight mis-estimation. The ARE of the value decreases as the model gets further from the the truth. Notice that the AREs of the $\beta_1$ terms are relatively close to one. This is because they were correctly specified.
